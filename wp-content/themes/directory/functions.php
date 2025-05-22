@@ -196,6 +196,17 @@ function mirror_ea_connections_to_user_profiles_with_taxonomy()
 }
 
 
+function custom_login_redirect($redirect_to, $request, $user) {
+    // Check if the user object is valid
+    if (isset($user->roles) && is_array($user->roles)) {
+        // Redirect all users to home page
+        return home_url();
+    }
+    return $redirect_to;
+}
+add_filter('login_redirect', 'custom_login_redirect', 10, 3);
+
+
 
 
 
