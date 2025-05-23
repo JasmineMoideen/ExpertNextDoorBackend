@@ -158,11 +158,11 @@ function mirror_ea_connections_to_user_profiles_with_taxonomy()
         'post_status'    => 'publish',
         'meta_key'       => 'user_id'
     ]);
-    
+
 
     foreach ($user_profiles as $profile) {
         $user_id = get_post_meta($profile->ID, 'user_id', true);
-        
+
 
         if (!$user_id) continue;
 
@@ -173,7 +173,7 @@ function mirror_ea_connections_to_user_profiles_with_taxonomy()
                 $user_id
             )
         );
-       
+
 
 
         // Map service IDs to service names
@@ -187,16 +187,16 @@ function mirror_ea_connections_to_user_profiles_with_taxonomy()
             );
             if ($service_name) $service_names[] = $service_name;
         }
-        
 
 
-         wp_set_object_terms($profile->ID, $service_names, 'service-category');
-        
+
+        wp_set_object_terms($profile->ID, $service_names, 'service-category');
     }
 }
 
 
-function custom_login_redirect($redirect_to, $request, $user) {
+function custom_login_redirect($redirect_to, $request, $user)
+{
     // Check if the user object is valid
     if (isset($user->roles) && is_array($user->roles)) {
         // Redirect all users to home page
@@ -205,6 +205,125 @@ function custom_login_redirect($redirect_to, $request, $user) {
     return $redirect_to;
 }
 add_filter('login_redirect', 'custom_login_redirect', 10, 3);
+
+
+function my_custom_appointments_menu()
+{
+    if (current_user_can('subscriber')) {
+        add_menu_page(
+            'My Appointments',
+            'My Appointments',
+            'read',
+            'my-customer-appointments',
+            'render_my_customer_appointments',
+            'dashicons-calendar-alt',
+            6
+        );
+    }
+}
+add_action('admin_menu', 'my_custom_appointments_menu');
+
+
+
+if (isset($_POST['delete_appointment']) && isset($_POST['delete_appointment_id'])) {
+    $appointment_id = intval($_POST['delete_appointment_id']);
+
+    // Optional: confirm ownership by current user before deleting
+    $email = wp_get_current_user()->user_email;
+
+    $app_owner_check = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM wp_ea_fields WHERE app_id = %d AND field_id = 1 AND value = %s",
+        $appointment_id,
+        $email
+    ));
+
+    if ($app_owner_check) {
+        // Delete from both tables
+        $wpdb->delete('wp_ea_fields', ['app_id' => $appointment_id]);
+        $wpdb->delete('wp_ea_appointments', ['id' => $appointment_id]);
+
+        echo '<div class="notice notice-success"><p>Appointment deleted successfully.</p></div>';
+    } else {
+        echo '<div class="notice notice-error"><p>You are not allowed to delete this appointment.</p></div>';
+    }
+}
+
+
+
+function render_my_customer_appointments()
+{
+    $current_user = wp_get_current_user();
+    $email = $current_user->user_email;
+
+    global $wpdb;
+
+    // Step 1: Get app_ids where email field matches user email
+    $appointment_ids = $wpdb->get_col($wpdb->prepare(
+        "SELECT app_id FROM wp_ea_fields WHERE field_id = 1 AND value = %s",
+        $email
+    ));
+
+
+
+    if (empty($appointment_ids)) {
+        echo '<div class="wrap"><h1>My Appointments</h1><p>No appointments found.</p></div>';
+        return;
+    }
+
+    // Step 2: Get wp_ea_appointments for those IDs
+    $placeholders = implode(',', array_fill(0, count($appointment_ids), '%d'));
+    $query = "SELECT * FROM wp_ea_appointments WHERE id IN ($placeholders) ORDER BY start DESC";
+    $prepared_query = $wpdb->prepare($query, ...$appointment_ids);
+    $appointments = $wpdb->get_results($prepared_query);
+
+    echo '<div class="wrap"><h1>My Appointments</h1>';
+    echo '<table class="widefat fixed striped">';
+    echo '<thead><tr>
+        <th>ID</th>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Description</th>
+        <th>Phone</th>
+    </tr></thead><tbody>';
+
+    foreach ($appointments as $appt) {
+        // Step 3: Get fields for this appointment
+        $fields = $wpdb->get_results($wpdb->prepare(
+            "SELECT field_id, value FROM wp_ea_fields WHERE app_id = %d",
+            $appt->id
+        ), OBJECT_K);
+
+        $service_name = isset($fields[5]) ? $fields[5]->value : '';
+        $description  = isset($fields[4]) ? $fields[4]->value : '';
+        $phone        = isset($fields[3]) ? $fields[3]->value : '';
+
+        $start_date = date('F j, Y', strtotime($appt->start));
+        $start_time = date('g:i a', strtotime($appt->start));
+        $end_time   = date('g:i a', strtotime($appt->end));
+
+        echo '<tr>';
+        echo '<td>' . esc_html($appt->id) . '</td>';
+        echo '<td>' . esc_html($service_name) . '</td>';
+        echo '<td>' . esc_html($start_date) . '</td>';
+        echo '<td>' . esc_html("$start_time – $end_time") . '</td>';
+        echo '<td>' . esc_html($appt->status) . '</td>';
+        echo '<td>' . esc_html($description) . '</td>';
+        echo '<td>' . esc_html($phone) . '</td>';
+        echo '<td>';
+        echo '<form method="post">';
+        echo '<input type="hidden" name="delete_appointment_id" value="' . esc_attr($appt->id) . '">';
+        echo '<input type="submit" name="delete_appointment" value="Delete" onclick="return confirm(\'Are you sure?\');">';
+        echo '</form>';
+        echo '</td>';
+        echo '</tr>';
+    }
+
+    echo '</tbody></table></div>';
+}
+
+
 
 
 
