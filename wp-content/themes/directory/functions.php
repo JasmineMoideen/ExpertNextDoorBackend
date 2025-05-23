@@ -194,7 +194,7 @@ function mirror_ea_connections_to_user_profiles_with_taxonomy()
     }
 }
 
-
+/* Customer Management */
 function custom_login_redirect($redirect_to, $request, $user)
 {
     // Check if the user object is valid
@@ -322,6 +322,115 @@ function render_my_customer_appointments()
 
     echo '</tbody></table></div>';
 }
+
+/*Staff Management */
+
+function add_staff_user_role() {
+    add_role(
+        'staff',
+        'Staff',
+        [
+            'read' => true, // basic capability to log in
+        ]
+    );
+}
+add_action('init', 'add_staff_user_role');
+
+
+function render_my_staff_appointments() {
+    $current_user = wp_get_current_user();
+
+    if (!in_array('staff', (array) $current_user->roles)) {
+        echo '<div class="wrap"><h1>Access Denied</h1><p>You do not have permission to view this page.</p></div>';
+        return;
+    }
+
+    $email = $current_user->user_email;
+    global $wpdb;
+
+    // Step 1: Get staff ID from wp_ea_staff table
+    $staff_id = $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM wp_ea_staff WHERE email = %s",
+        $email
+    ));
+
+    if (!$staff_id) {
+        echo '<div class="wrap"><h1>My Appointments</h1><p>No staff record found for your email.</p></div>';
+        return;
+    }
+
+    // Step 2: Get appointments for this staff ID
+    $appointments = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM wp_ea_appointments WHERE worker = %d ORDER BY start DESC",
+        $staff_id
+    ));
+
+    if (empty($appointments)) {
+        echo '<div class="wrap"><h1>My Appointments</h1><p>No appointments found.</p></div>';
+        return;
+    }
+
+    // Step 3: Display appointments
+    echo '<div class="wrap"><h2>Staff Appointments Dashboard</h2><h1>My Appointments</h1>';
+    echo '<table class="widefat fixed striped">';
+    echo '<thead><tr>
+        <th>ID</th>
+        <th>Service</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Description</th>
+        <th>Phone</th>
+    </tr></thead><tbody>';
+
+    foreach ($appointments as $appt) {
+        // Load fields (email, name, phone, description, service_name)
+        $fields = $wpdb->get_results($wpdb->prepare(
+            "SELECT field_id, value FROM wp_ea_fields WHERE app_id = %d",
+            $appt->id
+        ), OBJECT_K);
+
+        $service_name = isset($fields[5]) ? $fields[5]->value : '';
+        $description  = isset($fields[4]) ? $fields[4]->value : '';
+        $phone        = isset($fields[3]) ? $fields[3]->value : '';
+
+        $start_date = date('F j, Y', strtotime($appt->start));
+        $start_time = date('g:i a', strtotime($appt->start));
+        $end_time   = date('g:i a', strtotime($appt->end));
+
+        echo '<tr>';
+        echo '<td>' . esc_html($appt->id) . '</td>';
+        echo '<td>' . esc_html($service_name) . '</td>';
+        echo '<td>' . esc_html($start_date) . '</td>';
+        echo '<td>' . esc_html("$start_time – $end_time") . '</td>';
+        echo '<td>' . esc_html($appt->status) . '</td>';
+        echo '<td>' . esc_html($description) . '</td>';
+        echo '<td>' . esc_html($phone) . '</td>';
+        echo '</tr>';
+    }
+
+    echo '</tbody></table></div>';
+}
+
+
+
+function add_staff_appointments_menu() {
+    if (current_user_can('staff')) {
+        add_menu_page(
+            'My Appointments',
+            'My Appointments',
+            'read',
+            'staff-appointments',
+            'render_my_staff_appointments',
+            'dashicons-calendar-alt',
+            20
+        );
+    }
+}
+add_action('admin_menu', 'add_staff_appointments_menu');
+
+
+
 
 
 
