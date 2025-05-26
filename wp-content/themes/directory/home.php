@@ -14,22 +14,7 @@ get_header(); ?>
                         <h2>Discover The Best Services Near You</h2>
                         <p>1.118.940.376 The best service package is waiting for you</p>
                     </div>
-                    <!-- <div class="hero__search__form">
-                        <form action="#">
-                            <input type="text" placeholder="Search...">
-                            <div class="select__option">
-                                <select class="nice-select">
-                                    <option value="">Choose Categories</option>
-                                </select>
-                            </div>
-                            <div class="select__option">
-                                <select class="nice-select">
-                                    <option value="">Choose Location</option>
-                                </select>
-                            </div>
-                            <button type="submit">Explore Now</button>
-                        </form>
-                    </div> -->
+
                     <?php
                     $terms = get_terms([
                         'taxonomy' => 'service-category',
@@ -47,7 +32,7 @@ get_header(); ?>
                                 $image_url = wp_get_attachment_image_url($image_id, 'medium');
 
                         ?>
-                                <li><a href="#"><img src="<?php echo $image_url;?>" alt=""> <?php echo $term->name;?></a></li>
+                                <li><a href="<?php echo get_term_link($term); ?>"><img src="<?php echo $image_url;?>" alt=""> <?php echo $term->name;?></a></li>
                         <?php
                             }
                         }

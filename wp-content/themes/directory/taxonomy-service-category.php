@@ -1,10 +1,10 @@
 <!-- Header Section End -->
 
-<?php 
+<?php
 /**
  * Template Name: Service Category Detail Page
  */
-get_header(); 
+get_header();
 $term = get_queried_object();
 
 $service_id = get_field('service_id', 'term_' . $term->term_id);
@@ -24,9 +24,9 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
                     </div>
                     <div class="listing__hero__text">
                         <h2><?php echo $term->name; ?></h2>
-                        
-                      
-                        
+
+
+
 
                         <div class="listing__hero__widget">
 
@@ -39,9 +39,9 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
             <div class="col-lg-4">
                 <div class="listing__hero__btns">
 
-                <a href="<?php echo get_site_url(); ?>/service-appointment-booking/?location_id=1&service_id=<?php echo $service_id; ?>&user_id=3" class="primary-btn">
-    <i class="fa fa-calendar"></i> Book Appointment
-</a>
+                    <a href="<?php echo get_site_url(); ?>/service-appointment-booking/?location_id=1&service_id=<?php echo $service_id; ?>&user_id=3" class="primary-btn">
+                        <i class="fa fa-calendar"></i> Book Appointment
+                    </a>
 
                 </div>
             </div>
@@ -49,7 +49,7 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
     </div>
 </section>
 <!-- Listing Section End -->
- 
+
 
 <!-- Listing Details Section Begin -->
 <section class="listing-details spad">
@@ -85,58 +85,31 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
                     <div class="listing__details__amenities">
                         <h4>Services</h4>
                         <div class="row">
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-1.png" alt="">
-                                    <h6>Light fixture</h6>
-                                </div>
-                            </div>
 
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-2.png" alt="">
-                                    <h6> Ceiling fan installation</h6>
-                                </div>
-                            </div>
+                            <?php
 
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-3.png" alt="">
-                                    <h6>Fuse box upgrades</h6>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-4.png" alt="">
-                                    <h6>Automation systems</h6>
-                                </div>
-                            </div>
-                                                        <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-1.png" alt="">
-                                    <h6>Light fixture</h6>
-                                </div>
-                            </div>
+                            if (have_rows('specific_services', 'term_' . $term->term_id)) {
+                                while (have_rows('specific_services', 'term_' . $term->term_id)) {
+                                    the_row();
 
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-2.png" alt="">
-                                    <h6> Ceiling fan installation</h6>
-                                </div>
-                            </div>
 
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-3.png" alt="">
-                                    <h6>Fuse box upgrades</h6>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-3 col-6">
-                                <div class="listing__details__amenities__item">
-                                    <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-4.png" alt="">
-                                    <h6>Automation systems</h6>
-                                </div>
-                            </div>
+                            ?>
+
+                                    <div class="col-lg-3 col-md-3 col-6">
+                                        <div class="listing__details__amenities__item">
+                                            <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-8.png" alt="">
+                                            <h6><?php echo get_sub_field('service_name', 'term_' . $term->term_id);?></h6>
+                                        </div>
+                                    </div>
+
+                            <?php
+                                }
+                            }
+                            ?>
+
+
+
+
 
 
 
@@ -194,30 +167,30 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
                 <h3 class="section-title">Available Service Provider Profiles</h3>
             </div>
             <?php
-        
 
 
 
-        
 
-        $args = array(
-            'post_type' => 'user-profile',
-            'order' => 'ASC',
-            'tax_query' => array(
-                array(
-                    'taxonomy' => 'service-category',
-                    'field' => 'slug',
-                    'terms' => $term->slug,
+
+
+            $args = array(
+                'post_type' => 'user-profile',
+                'order' => 'ASC',
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'service-category',
+                        'field' => 'slug',
+                        'terms' => $term->slug,
+                    ),
                 ),
-            ),
-        );
+            );
 
 
-        $query = new WP_Query($args);
+            $query = new WP_Query($args);
 
 
 
-        ?>
+            ?>
 
             <?php if ($query->have_posts()) : ?>
                 <?php while ($query->have_posts()) : $query->the_post(); ?>
@@ -227,17 +200,18 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
                                 <?php if (has_post_thumbnail()) : ?>
                                     <?php the_post_thumbnail('medium'); ?>
                                 <?php else : ?>
-                                    <img src="<?php echo get_field('profile_image');?>" alt="">
+                                    <img src="<?php echo get_field('profile_image'); ?>" alt="">
                                 <?php endif; ?>
                             </div>
                             <div class="provider-card__content">
                                 <h5><?php the_title(); ?></h5>
-                                <p><?php echo wp_trim_words(get_field('user_bio'), 20); ?></p>
+                                <p><?php echo wp_trim_words(get_field('user_description'), 20); ?></p>
                                 <a href="<?php the_permalink(); ?>" class="primary-btn small">View Profile</a>
                             </div>
                         </div>
                     </div>
-                <?php endwhile; wp_reset_postdata(); ?>
+                <?php endwhile;
+                wp_reset_postdata(); ?>
             <?php else : ?>
                 <div class="col-lg-12">
                     <p>No service providers found in this category.</p>
@@ -254,7 +228,7 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
 
 
 
- <!-- Newslatter Section Begin -->
+<!-- Newslatter Section Begin -->
 <section class="newslatter">
     <div class="container">
         <div class="row">
@@ -276,5 +250,3 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
 <!-- Newslatter Section End -->
 
 <?php get_footer(); ?>
-
-

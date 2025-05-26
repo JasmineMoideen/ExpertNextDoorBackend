@@ -84,35 +84,59 @@ function sync_new_ea_staff_to_users_cpt()
     // Step 1: Fetch all ea_staff entries
     $staff_members = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ea_staff");
 
-    foreach ($staff_members as $staff) {
-        // Step 2: Check if this staff is already synced to user-profile CPT
-        $existing_post = new WP_Query([
-            'post_type'  => 'user-profile',
-            'meta_key'   => 'user_id',
-            'meta_value' => $staff->id,
-            'fields'     => 'ids',
-            'posts_per_page' => 1,
+foreach ($staff_members as $staff) {
+    // Step 2: Check if this staff is already synced to user-profile CPT
+    $existing_post = new WP_Query([
+        'post_type'      => 'user-profile',
+        'meta_key'       => 'user_id',
+        'meta_value'     => $staff->id,
+        'fields'         => 'ids',
+        'posts_per_page' => 1,
+    ]);
+
+    if (empty($existing_post->posts)) {
+        // Not found, insert new user-profile post
+        $post_id = wp_insert_post([
+            'post_type'    => 'user-profile',
+            'post_title'   => $staff->name,
+            'post_content' => $staff->description,
+            'post_status'  => 'publish',
+            'meta_input'   => [
+                'user_name'        => $staff->name,
+                'user_description' => $staff->description,
+                'user_email'       => $staff->email,
+                'user_phone'       => $staff->phone,
+                'user_id'          => $staff->id,
+            ]
         ]);
 
-        if (empty($existing_post->posts)) {
-            // Not found, insert new user-profile post
-            wp_insert_post([
-                'post_type'    => 'user-profile',
-                'post_title'   => $staff->name,
-                'post_content' => $staff->description,
-                'post_status'  => 'publish',
-                'meta_input'   => [
-                    'user_name'        => $staff->name,
-                    'user_description' => $staff->description,
-                    'user_email'       => $staff->email,
-                    'user_phone'       => $staff->phone,
-                    'user_id'          => $staff->id,
-                ]
-            ]);
-        }
+if ($post_id) {
 
-        wp_reset_postdata();
+    // Fetch the first schedule entry from ea_connections
+    $schedule_row = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT day_of_week, time_from, time_to FROM {$wpdb->prefix}ea_connections WHERE worker = %d LIMIT 1",
+            $staff->id
+        ),
+        ARRAY_A
+    );
+
+    if (!empty($schedule_row)) {
+        $acf_group_schedule = [
+            'day_of_week' => $schedule_row['day_of_week'],
+            'time_from'   => $schedule_row['time_from'],
+            'time_to'     => $schedule_row['time_to'],
+        ];
+
+        // Save as a Group field
+        update_field('schedule', $acf_group_schedule, $post_id);
     }
+}
+    }
+
+    wp_reset_postdata();
+}
+
 }
 
 
