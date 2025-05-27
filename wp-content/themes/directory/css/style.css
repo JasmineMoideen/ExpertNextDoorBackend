@@ -3468,5 +3468,14 @@ div.comment-body p {
     border-color: #c62828 !important;
 }
 
-
+/* contact form button */
+.contact__form .site-btn {
+  background: #f03250;
+    color: white;
+    border-radius: 2px;
+    padding: 13px 42px 12px;
+    font-size: 15px;
+    font-weight: 600;
+    width: 25%;
+}
 

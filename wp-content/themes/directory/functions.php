@@ -454,6 +454,10 @@ function add_staff_appointments_menu() {
 add_action('admin_menu', 'add_staff_appointments_menu');
 
 
+add_filter('wpcf7_autop_or_not', '__return_false');
+
+
+
 
 
 
