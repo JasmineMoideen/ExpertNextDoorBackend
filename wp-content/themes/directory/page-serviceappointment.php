@@ -19,6 +19,9 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
 
         </div>
     </section>
+
+
+    
 </main>
 
 <?php else : ?>
@@ -38,39 +41,39 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
 <?php get_footer(); ?>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  const observer = new MutationObserver((mutationsList) => {
-    for (let mutation of mutationsList) {
-      mutation.addedNodes.forEach((node) => {
-        if (
-          node.nodeType === 1 && // Ensure it's an element
-          node.textContent.trim().toLowerCase() === "done"
-        ) {
-          console.log("Booking completed: detected 'done' message");
+    const observer = new MutationObserver((mutationsList) => {
+        for (let mutation of mutationsList) {
+            mutation.addedNodes.forEach((node) => {
+                if (
+                    node.nodeType === 1 && // Ensure it's an element
+                    node.textContent.trim().toLowerCase() === "done"
+                ) {
+                    try {
+                        sessionStorage.clear();
+                        localStorage.clear();
+                    } catch (e) {
+                        console.warn("Storage clear failed:", e);
+                    }
 
-          // Clear storage to reset Easy Appointments internal state
-          try {
-            sessionStorage.clear();
-            localStorage.clear();
-            console.log("Cleared sessionStorage and localStorage");
-          } catch (e) {
-            console.warn("Storage clear failed:", e);
-          }
-
-          // Reload page after short delay
-          setTimeout(() => window.location.reload(), 1500);
+                    // Redirect to the payment page instead of reloading
+                    setTimeout(() => {
+                        window.location.href = "/payment-page/"; // Replace with your actual payment page path
+                    }, 1500);
+                }
+            });
         }
-      });
-    }
-  });
+    });
 
-  // Watch the container that gets updated after submission
-  const target = document.querySelector("#ea_bootstrap") || document.body;
-  if (target) {
-    observer.observe(target, { childList: true, subtree: true });
-    console.log("MutationObserver is watching for 'done'");
-  } else {
-    console.warn("Could not find booking container");
-  }
+    const target = document.querySelector("#ea_bootstrap") || document.body;
+    if (target) {
+        observer.observe(target, {
+            childList: true,
+            subtree: true
+        });
+        console.log("MutationObserver is watching for 'done'");
+    } else {
+        console.warn("Could not find booking container");
+    }
 });
 </script>
 

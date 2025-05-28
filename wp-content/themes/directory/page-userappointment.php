@@ -36,41 +36,39 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
 
 <?php get_footer(); ?>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const observer = new MutationObserver((mutationsList) => {
-            for (let mutation of mutationsList) {
-                mutation.addedNodes.forEach((node) => {
-                    if (
-                        node.nodeType === 1 && // Ensure it's an element
-                        node.textContent.trim().toLowerCase() === "done"
-                    ) {
-
-
-                        try {
-                            sessionStorage.clear();
-                            localStorage.clear();
-
-                        } catch (e) {
-                            console.warn("Storage clear failed:", e);
-                        }
-
-
-                        setTimeout(() => window.location.reload(), 1500);
+document.addEventListener("DOMContentLoaded", function () {
+    const observer = new MutationObserver((mutationsList) => {
+        for (let mutation of mutationsList) {
+            mutation.addedNodes.forEach((node) => {
+                if (
+                    node.nodeType === 1 && // Ensure it's an element
+                    node.textContent.trim().toLowerCase() === "done"
+                ) {
+                    try {
+                        sessionStorage.clear();
+                        localStorage.clear();
+                    } catch (e) {
+                        console.warn("Storage clear failed:", e);
                     }
-                });
-            }
-        });
 
-        // Watch the container that gets updated after submission
-        const target = document.querySelector("#ea_bootstrap") || document.body;
-        if (target) {
-            observer.observe(target, {
-                childList: true,
-                subtree: true
+                    // Redirect to the payment page instead of reloading
+                    setTimeout(() => {
+                        window.location.href = window.location.origin + "/servicelisting/payment-page/"; // Replace with your actual payment page path
+                    }, 1500);
+                }
             });
-            console.log("MutationObserver is watching for 'done'");
-        } else {
-            console.warn("Could not find booking container");
         }
     });
+
+    const target = document.querySelector("#ea_bootstrap") || document.body;
+    if (target) {
+        observer.observe(target, {
+            childList: true,
+            subtree: true
+        });
+        console.log("MutationObserver is watching for 'done'");
+    } else {
+        console.warn("Could not find booking container");
+    }
+});
 </script>
