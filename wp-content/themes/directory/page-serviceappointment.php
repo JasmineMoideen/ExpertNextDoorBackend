@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Redirect to the payment page instead of reloading
                     setTimeout(() => {
-                        window.location.href = "/payment-page/"; // Replace with your actual payment page path
+                        window.location.href = window.location.origin + "/servicelisting/payment-page/"; // Replace with your actual payment page path
                     }, 1500);
                 }
             });

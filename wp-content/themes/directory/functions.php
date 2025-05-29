@@ -543,4 +543,5 @@ function ea_render_appointments_page() {
 
 
 
+
 ?>
