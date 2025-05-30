@@ -48,12 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     node.nodeType === 1 && // Ensure it's an element
                     node.textContent.trim().toLowerCase() === "done"
                 ) {
-                    try {
-                        sessionStorage.clear();
-                        localStorage.clear();
-                    } catch (e) {
-                        console.warn("Storage clear failed:", e);
-                    }
+                    
 
                     // Redirect to the payment page instead of reloading
                     setTimeout(() => {

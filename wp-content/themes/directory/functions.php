@@ -84,59 +84,58 @@ function sync_new_ea_staff_to_users_cpt()
     // Step 1: Fetch all ea_staff entries
     $staff_members = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ea_staff");
 
-foreach ($staff_members as $staff) {
-    // Step 2: Check if this staff is already synced to user-profile CPT
-    $existing_post = new WP_Query([
-        'post_type'      => 'user-profile',
-        'meta_key'       => 'user_id',
-        'meta_value'     => $staff->id,
-        'fields'         => 'ids',
-        'posts_per_page' => 1,
-    ]);
-
-    if (empty($existing_post->posts)) {
-        // Not found, insert new user-profile post
-        $post_id = wp_insert_post([
-            'post_type'    => 'user-profile',
-            'post_title'   => $staff->name,
-            'post_content' => $staff->description,
-            'post_status'  => 'publish',
-            'meta_input'   => [
-                'user_name'        => $staff->name,
-                'user_description' => $staff->description,
-                'user_email'       => $staff->email,
-                'user_phone'       => $staff->phone,
-                'user_id'          => $staff->id,
-            ]
+    foreach ($staff_members as $staff) {
+        // Step 2: Check if this staff is already synced to user-profile CPT
+        $existing_post = new WP_Query([
+            'post_type'      => 'user-profile',
+            'meta_key'       => 'user_id',
+            'meta_value'     => $staff->id,
+            'fields'         => 'ids',
+            'posts_per_page' => 1,
         ]);
 
-if ($post_id) {
+        if (empty($existing_post->posts)) {
+            // Not found, insert new user-profile post
+            $post_id = wp_insert_post([
+                'post_type'    => 'user-profile',
+                'post_title'   => $staff->name,
+                'post_content' => $staff->description,
+                'post_status'  => 'publish',
+                'meta_input'   => [
+                    'user_name'        => $staff->name,
+                    'user_description' => $staff->description,
+                    'user_email'       => $staff->email,
+                    'user_phone'       => $staff->phone,
+                    'user_id'          => $staff->id,
+                ]
+            ]);
 
-    // Fetch the first schedule entry from ea_connections
-    $schedule_row = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT day_of_week, time_from, time_to FROM {$wpdb->prefix}ea_connections WHERE worker = %d LIMIT 1",
-            $staff->id
-        ),
-        ARRAY_A
-    );
+            if ($post_id) {
 
-    if (!empty($schedule_row)) {
-        $acf_group_schedule = [
-            'day_of_week' => $schedule_row['day_of_week'],
-            'time_from'   => $schedule_row['time_from'],
-            'time_to'     => $schedule_row['time_to'],
-        ];
+                // Fetch the first schedule entry from ea_connections
+                $schedule_row = $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT day_of_week, time_from, time_to FROM {$wpdb->prefix}ea_connections WHERE worker = %d LIMIT 1",
+                        $staff->id
+                    ),
+                    ARRAY_A
+                );
 
-        // Save as a Group field
-        update_field('schedule', $acf_group_schedule, $post_id);
+                if (!empty($schedule_row)) {
+                    $acf_group_schedule = [
+                        'day_of_week' => $schedule_row['day_of_week'],
+                        'time_from'   => $schedule_row['time_from'],
+                        'time_to'     => $schedule_row['time_to'],
+                    ];
+
+                    // Save as a Group field
+                    update_field('schedule', $acf_group_schedule, $post_id);
+                }
+            }
+        }
+
+        wp_reset_postdata();
     }
-}
-    }
-
-    wp_reset_postdata();
-}
-
 }
 
 
@@ -349,7 +348,8 @@ function render_my_customer_appointments()
 
 /*Staff Management */
 
-function add_staff_user_role() {
+function add_staff_user_role()
+{
     add_role(
         'staff',
         'Staff',
@@ -361,7 +361,8 @@ function add_staff_user_role() {
 add_action('init', 'add_staff_user_role');
 
 
-function render_my_staff_appointments() {
+function render_my_staff_appointments()
+{
     $current_user = wp_get_current_user();
 
     if (!in_array('staff', (array) $current_user->roles)) {
@@ -438,7 +439,8 @@ function render_my_staff_appointments() {
 
 
 
-function add_staff_appointments_menu() {
+function add_staff_appointments_menu()
+{
     if (current_user_can('staff')) {
         add_menu_page(
             'My Appointments',
@@ -459,7 +461,8 @@ add_filter('wpcf7_autop_or_not', '__return_false');
 /* Upcoming appointments */
 
 
-function ea_register_appointments_admin_menu() {
+function ea_register_appointments_admin_menu()
+{
     add_menu_page(
         'Upcoming Appointments',
         'Upcoming Appointments',
@@ -471,7 +474,8 @@ function ea_register_appointments_admin_menu() {
     );
 }
 add_action('admin_menu', 'ea_register_appointments_admin_menu');
-function ea_render_appointments_page() {
+function ea_render_appointments_page()
+{
     global $wpdb;
 
 
@@ -508,7 +512,7 @@ function ea_render_appointments_page() {
                 )
             );
 
-             $service_name = $wpdb->get_var(
+            $service_name = $wpdb->get_var(
                 $wpdb->prepare(
                     "SELECT name FROM {$wpdb->prefix}ea_services WHERE id = %d",
                     $appointment->service
@@ -518,7 +522,7 @@ function ea_render_appointments_page() {
             echo '<tr>';
             echo '<td>' . esc_html($appointment->date) . '</td>';
             echo '<td>' . esc_html($staff_name ?? 'Unknown') . '</td>';
-          
+
             echo '<td>' . esc_html($service_name ?? '-') . '</td>';
             echo '</tr>';
         }
@@ -532,7 +536,51 @@ function ea_render_appointments_page() {
 }
 
 
+add_action('ea_new_app', 'redirect_after_ea_appointment_created', 10, 3);
 
+function redirect_after_ea_appointment_created($appointment_id, $appointment_data, $send_notifications)
+{
+    if (!session_id()) {
+        session_start();
+    }
+
+    $_SESSION['ea_last_appointment_id'] = $appointment_id;
+
+    error_log("EA Hook Triggered: Appointment ID = " . $appointment_id);
+}
+
+
+/* Ajax handler to update payment success to database with appointment id */
+add_action('wp_ajax_mark_payment_complete', 'handle_mark_payment_complete');
+add_action('wp_ajax_nopriv_mark_payment_complete', 'handle_mark_payment_complete');
+
+function handle_mark_payment_complete()
+{
+    if (!session_id()) {
+        session_start();
+    }
+    if (!isset($_SESSION['ea_last_appointment_id'])) {
+        wp_send_json_error(['message' => 'No appointment in session.']);
+    }
+
+    $appointment_id = intval($_SESSION['ea_last_appointment_id']);
+    global $wpdb;
+    $table = $wpdb->prefix . 'ea_appointments';
+
+    $updated = $wpdb->update(
+        $table,
+        ['payment_status' => 'completed'],
+        ['id' => $appointment_id],
+        ['%s'],
+        ['%d']
+    );
+
+    if ($updated !== false) {
+        wp_send_json_success(['updated' => $updated]);
+    } else {
+        wp_send_json_error(['message' => 'DB update failed']);
+    }
+}
 
 
 
