@@ -536,49 +536,56 @@ function ea_render_appointments_page()
 }
 
 
-add_action('ea_new_app', 'redirect_after_ea_appointment_created', 10, 3);
+add_action('ea_new_app', 'handle_new_appointment', 10, 3);
 
-function redirect_after_ea_appointment_created($appointment_id, $appointment_data, $send_notifications)
-{
-    if (!session_id()) {
-        session_start();
-    }
+function handle_new_appointment($appointment_id, $appointment_data, $send_notifications) {
+// Example: Store appointment ID in PHP session
+if (!session_id()) {
+session_start();
+}
 
-    $_SESSION['ea_last_appointment_id'] = $appointment_id;
+$_SESSION['ea_last_appointment_id'] = $appointment_id;
 
-    error_log("EA Hook Triggered: Appointment ID = " . $appointment_id);
+// Optional: Log to debug.log to confirm
+error_log('New appointment created. ID: ' . $appointment_id);
 }
 
 
-/* Ajax handler to update payment success to database with appointment id */
-add_action('wp_ajax_mark_payment_complete', 'handle_mark_payment_complete');
-add_action('wp_ajax_nopriv_mark_payment_complete', 'handle_mark_payment_complete');
+add_action('rest_api_init', function () {
+    register_rest_route('razorpay/v1', '/payment-success', [
+        'methods' => 'POST',
+        'callback' => 'handle_razorpay_payment_webhook',
+        'permission_callback' => '__return_true',
+    ]);
+});
 
-function handle_mark_payment_complete()
-{
-    if (!session_id()) {
-        session_start();
-    }
-    if (!isset($_SESSION['ea_last_appointment_id'])) {
-        wp_send_json_error(['message' => 'No appointment in session.']);
-    }
-
-    $appointment_id = intval($_SESSION['ea_last_appointment_id']);
+function handle_razorpay_payment_webhook(WP_REST_Request $request) {
     global $wpdb;
-    $table = $wpdb->prefix . 'ea_appointments';
 
+    $data = $request->get_json_params();
+
+    error_log('Webhook received: ' . print_r($data, true)); // Debug log
+
+    // Extract appointment_id from notes
+    $appointment_id = intval($data['payload']['payment']['entity']['notes']['appointment_id'] ?? 0);
+
+    if ($appointment_id === 0) {
+        return new WP_REST_Response(['success' => false, 'error' => 'Missing appointment_id'], 400);
+    }
+
+    // Update payment status
     $updated = $wpdb->update(
-        $table,
-        ['payment_status' => 'completed'],
+        $wpdb->prefix . 'ea_appointments',
+        ['payment_status' => 'paid'],
         ['id' => $appointment_id],
         ['%s'],
         ['%d']
     );
 
     if ($updated !== false) {
-        wp_send_json_success(['updated' => $updated]);
+        return new WP_REST_Response(['success' => true, 'appointment_id' => $appointment_id], 200);
     } else {
-        wp_send_json_error(['message' => 'DB update failed']);
+        return new WP_REST_Response(['success' => false, 'error' => 'Failed to update DB'], 500);
     }
 }
 
