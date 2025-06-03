@@ -47,8 +47,7 @@ elseif (isset($_SESSION['ea_last_appointment_id'])) {
                     appointment_id: "<?php echo esc_js($appointment_id); ?>"
                 },
                 handler: function(response) {
-                    console.log("Payment successful:", response);
-                    // Optional: send AJAX to confirm on client side
+                    window.location.href = "<?php echo site_url('/thank-you'); ?>";
                 }
             };
 
@@ -56,5 +55,5 @@ elseif (isset($_SESSION['ea_last_appointment_id'])) {
             rzp.open();
         };
     </script>
-    </form>
+    
 </div>

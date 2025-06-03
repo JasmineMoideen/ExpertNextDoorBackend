@@ -1,5 +1,6 @@
 <?php
 
+
 function service_listing_enqueue_styles()
 {
     wp_enqueue_style('directing_bootstrap', get_template_directory_uri() . '/css/bootstrap.min.css');
@@ -557,9 +558,14 @@ add_action('rest_api_init', function () {
         'callback' => 'handle_razorpay_payment_webhook',
         'permission_callback' => '__return_true',
     ]);
+
+   
 });
 
+
+
 function handle_razorpay_payment_webhook(WP_REST_Request $request) {
+  
     global $wpdb;
 
     $data = $request->get_json_params();
@@ -582,7 +588,13 @@ function handle_razorpay_payment_webhook(WP_REST_Request $request) {
         ['%d']
     );
 
+    // Clear session if update was successful
     if ($updated !== false) {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        session_unset();  // Remove all session variables
+        session_destroy(); // Destroy the session
         return new WP_REST_Response(['success' => true, 'appointment_id' => $appointment_id], 200);
     } else {
         return new WP_REST_Response(['success' => false, 'error' => 'Failed to update DB'], 500);
