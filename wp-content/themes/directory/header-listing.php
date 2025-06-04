@@ -8,12 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Directing | Template</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-    
-    <?php wp_head();?>
+
+    <?php wp_head(); ?>
 </head>
 
 <body>
@@ -25,7 +26,7 @@
             <div class="row">
                 <div class="col-lg-3 col-md-3">
                     <div class="header__logo">
-                        <a href="<?php echo get_site_url();?>"><img src="<?php echo get_template_directory_uri(); ?>/img/Logo.png" alt=""></a>
+                        <a href="<?php echo get_site_url(); ?>"><img src="<?php echo get_template_directory_uri(); ?>/img/Logo.png" alt=""></a>
                     </div>
                 </div>
                 <div class="col-lg-9 col-md-9">
@@ -33,7 +34,7 @@
                         <nav class="header__menu mobile-menu">
                             <ul>
                                 <li><a href="./index.html">Home</a></li>
-                                <li class="active"><a href="./listing.html">Listing</a></li>
+
                                 <li><a href="#">Categories</a></li>
                                 <li><a href="#">Pages</a>
                                     <ul class="dropdown">
@@ -44,13 +45,21 @@
                                     </ul>
                                 </li>
                                 <li><a href="./blog.html">Blog</a></li>
-                                <li><a href="#">Shop</a></li>
+
                             </ul>
                         </nav>
                         <div class="header__menu__right">
-                            <a href="#" class="primary-btn"><i class="fa fa-plus"></i>Add Listing</a>
-                            <a href="#" class="login-btn"><i class="fa fa-user"></i></a>
+                            <?php if (is_user_logged_in()) : ?>
+                                <a href="<?php echo wp_logout_url(home_url()); ?>" class="primary-btn">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            <?php else : ?>
+                                <a href="<?php echo wp_login_url(); ?>" class="primary-btn">
+                                    <i class="fas fa-user-circle"></i> Login
+                                </a>
+                            <?php endif; ?>
                         </div>
+
                     </div>
                 </div>
             </div>

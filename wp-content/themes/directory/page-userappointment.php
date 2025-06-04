@@ -55,22 +55,21 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
         const observer = new MutationObserver((mutationsList) => {
             for (let mutation of mutationsList) {
                 mutation.addedNodes.forEach((node) => {
-                    if (
-                        node.nodeType === 1 && // Ensure it's an element
-                        node.textContent.trim().toLowerCase() === "done"
-                    ) {
+                    if (node.nodeType === 1) {
+                        const text = node.textContent.trim().toLowerCase();
                         
-
-                        // Redirect to the payment page instead of reloading
-                        setTimeout(() => {
-                            const paymentURL = window.location.origin + "/servicelisting/payment-page/";
-                            if (window.eaAppointmentId) {
-                                window.location.href = `${paymentURL}?appointment_id=${window.eaAppointmentId}`;
-                            } else {
-                                window.location.href = paymentURL;
-                            }
-                            // Replace with your actual payment page path
-                        }, 1500);
+                        if (text === "appointment booked successfully!") {
+                            // Redirect to the payment page instead of reloading
+                            setTimeout(() => {
+                                const paymentURL = window.location.origin + "/servicelisting/payment-page/";
+                                if (window.eaAppointmentId) {
+                                    window.location.href = `${paymentURL}?appointment_id=${window.eaAppointmentId}`;
+                                } else {
+                                    window.location.href = paymentURL;
+                                }
+                                // Replace with your actual payment page path
+                            }, 1500);
+                        }
                     }
                 });
             }
@@ -82,7 +81,7 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
                 childList: true,
                 subtree: true
             });
-            console.log("MutationObserver is watching for 'done'");
+            
         } else {
             console.warn("Could not find booking container");
         }

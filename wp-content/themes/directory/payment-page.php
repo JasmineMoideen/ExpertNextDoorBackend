@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Template Name: Payment Page
  */
@@ -11,27 +10,18 @@ if (!session_id()) {
 
 $appointment_id = 0;
 
-// Priority 1: check GET parameter
 if (isset($_GET['appointment_id'])) {
     $appointment_id = intval($_GET['appointment_id']);
-}
-
-// Priority 2: fallback to session if not in GET
-elseif (isset($_SESSION['ea_last_appointment_id'])) {
+} elseif (isset($_SESSION['ea_last_appointment_id'])) {
     $appointment_id = intval($_SESSION['ea_last_appointment_id']);
 }
-
-
 ?>
 
 
 
-
-
-
 <div class="payment-container">
-    <h2>Complete Your Payment</h2>
-    <h2>Your Appointment ID: <?php echo esc_html($appointment_id); ?></h2>
+    <h4>Complete Your Payment</h4>
+    
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <button id="payBtn">Pay Now</button>
 
@@ -55,5 +45,6 @@ elseif (isset($_SESSION['ea_last_appointment_id'])) {
             rzp.open();
         };
     </script>
-    
 </div>
+
+<?php get_footer(); ?>

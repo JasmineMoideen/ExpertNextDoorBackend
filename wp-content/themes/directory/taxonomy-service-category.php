@@ -98,7 +98,7 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
                                     <div class="col-lg-3 col-md-3 col-6">
                                         <div class="listing__details__amenities__item">
                                             <img src="<?php echo get_template_directory_uri(); ?>/img/listing/details/amenities/ame-8.png" alt="">
-                                            <h6><?php echo get_sub_field('service_name', 'term_' . $term->term_id);?></h6>
+                                            <h6><?php echo get_sub_field('service_name', 'term_' . $term->term_id); ?></h6>
                                         </div>
                                     </div>
 
@@ -182,6 +182,14 @@ $service_id = get_field('service_id', 'term_' . $term->term_id);
                         'field' => 'slug',
                         'terms' => $term->slug,
                     ),
+                ),
+                'meta_query' => array(
+                    array(
+                        'key' => 'user_id',
+                        'value' => 3,
+                        'compare' => '!=', // Exclude posts where user_id == 3
+                        'type' => 'NUMERIC'
+                    )
                 ),
             );
 

@@ -59,22 +59,21 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
         const observer = new MutationObserver((mutationsList) => {
             for (let mutation of mutationsList) {
                 mutation.addedNodes.forEach((node) => {
-                    if (
-                        node.nodeType === 1 && // Ensure it's an element
-                        node.textContent.trim().toLowerCase() === "done"
-                    ) {
-
-
-                        // Redirect to the payment page instead of reloading
-                        setTimeout(() => {
-                            const paymentURL = window.location.origin + "/servicelisting/payment-page/";
-                            if (window.eaAppointmentId) {
-                                window.location.href = `${paymentURL}?appointment_id=${window.eaAppointmentId}`;
-                            } else {
-                                window.location.href = paymentURL;
-                            }
-                            // Replace with your actual payment page path
-                        }, 1500);
+                    if (node.nodeType === 1) {
+                        const text = node.textContent.trim().toLowerCase();
+                        
+                        if (text === "appointment booked successfully!") {
+                            // Redirect to the payment page instead of reloading
+                            setTimeout(() => {
+                                const paymentURL = window.location.origin + "/servicelisting/payment-page/";
+                                if (window.eaAppointmentId) {
+                                    window.location.href = `${paymentURL}?appointment_id=${window.eaAppointmentId}`;
+                                } else {
+                                    window.location.href = paymentURL;
+                                }
+                                // Replace with your actual payment page path
+                            }, 1500);
+                        }
                     }
                 });
             }

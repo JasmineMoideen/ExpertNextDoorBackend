@@ -308,8 +308,12 @@ function render_my_customer_appointments()
         <th>Date</th>
         <th>Time</th>
         <th>Status</th>
+        <th>Payment Status</th>
         <th>Description</th>
         <th>Phone</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Action</th>
     </tr></thead><tbody>';
 
     foreach ($appointments as $appt) {
@@ -322,6 +326,8 @@ function render_my_customer_appointments()
         $service_name = isset($fields[5]) ? $fields[5]->value : '';
         $description  = isset($fields[4]) ? $fields[4]->value : '';
         $phone        = isset($fields[3]) ? $fields[3]->value : '';
+        $customer_name        = isset($fields[2]) ? $fields[2]->value : '';
+        $customer_email        = isset($fields[1]) ? $fields[1]->value : '';
 
         $start_date = date('F j, Y', strtotime($appt->start));
         $start_time = date('g:i a', strtotime($appt->start));
@@ -333,8 +339,11 @@ function render_my_customer_appointments()
         echo '<td>' . esc_html($start_date) . '</td>';
         echo '<td>' . esc_html("$start_time – $end_time") . '</td>';
         echo '<td>' . esc_html($appt->status) . '</td>';
+        echo '<td>' . esc_html($appt->payment_status) . '</td>';
         echo '<td>' . esc_html($description) . '</td>';
         echo '<td>' . esc_html($phone) . '</td>';
+        echo '<td>' . esc_html($customer_name) . '</td>';
+        echo '<td>' . esc_html($customer_email) . '</td>';
         echo '<td>';
         echo '<form method="post">';
         echo '<input type="hidden" name="delete_appointment_id" value="' . esc_attr($appt->id) . '">';
@@ -405,8 +414,11 @@ function render_my_staff_appointments()
         <th>Date</th>
         <th>Time</th>
         <th>Status</th>
+        <th>Payment Status</th>
         <th>Description</th>
         <th>Phone</th>
+        <th>Name</th>
+        <th>Email</th>
     </tr></thead><tbody>';
 
     foreach ($appointments as $appt) {
@@ -419,6 +431,8 @@ function render_my_staff_appointments()
         $service_name = isset($fields[5]) ? $fields[5]->value : '';
         $description  = isset($fields[4]) ? $fields[4]->value : '';
         $phone        = isset($fields[3]) ? $fields[3]->value : '';
+        $customer_name = isset($fields[2]) ? $fields[2]->value : '';
+        $customer_email = isset($fields[1]) ? $fields[1]->value : '';
 
         $start_date = date('F j, Y', strtotime($appt->start));
         $start_time = date('g:i a', strtotime($appt->start));
@@ -430,8 +444,11 @@ function render_my_staff_appointments()
         echo '<td>' . esc_html($start_date) . '</td>';
         echo '<td>' . esc_html("$start_time – $end_time") . '</td>';
         echo '<td>' . esc_html($appt->status) . '</td>';
+        echo '<td>' . esc_html($appt->payment_status) . '</td>';
         echo '<td>' . esc_html($description) . '</td>';
         echo '<td>' . esc_html($phone) . '</td>';
+        echo '<td>' . esc_html($customer_name) . '</td>';
+        echo '<td>' . esc_html($customer_email) . '</td>';
         echo '</tr>';
     }
 
@@ -539,16 +556,14 @@ function ea_render_appointments_page()
 
 add_action('ea_new_app', 'handle_new_appointment', 10, 3);
 
-function handle_new_appointment($appointment_id, $appointment_data, $send_notifications) {
-// Example: Store appointment ID in PHP session
-if (!session_id()) {
-session_start();
-}
+function handle_new_appointment($appointment_id, $appointment_data, $send_notifications)
+{
+    // Example: Store appointment ID in PHP session
+    if (!session_id()) {
+        session_start();
+    }
 
-$_SESSION['ea_last_appointment_id'] = $appointment_id;
-
-// Optional: Log to debug.log to confirm
-error_log('New appointment created. ID: ' . $appointment_id);
+    $_SESSION['ea_last_appointment_id'] = $appointment_id;
 }
 
 
@@ -558,19 +573,18 @@ add_action('rest_api_init', function () {
         'callback' => 'handle_razorpay_payment_webhook',
         'permission_callback' => '__return_true',
     ]);
-
-   
 });
 
 
 
-function handle_razorpay_payment_webhook(WP_REST_Request $request) {
-  
+function handle_razorpay_payment_webhook(WP_REST_Request $request)
+{
+
     global $wpdb;
 
     $data = $request->get_json_params();
 
-    error_log('Webhook received: ' . print_r($data, true)); // Debug log
+
 
     // Extract appointment_id from notes
     $appointment_id = intval($data['payload']['payment']['entity']['notes']['appointment_id'] ?? 0);
@@ -600,6 +614,19 @@ function handle_razorpay_payment_webhook(WP_REST_Request $request) {
         return new WP_REST_Response(['success' => false, 'error' => 'Failed to update DB'], 500);
     }
 }
+
+add_action('ea_edit_app', 'my_custom_logic_on_appointment_edit');
+
+function my_custom_logic_on_appointment_edit($appointment_id) {
+    // Fetch the updated appointment
+    global $wpdb;
+    $table = $wpdb->prefix . 'ea_appointments';
+    $appointment = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $appointment_id));
+
+    // Do something useful, e.g., log it or send a notification
+    error_log("📝 Appointment {$appointment_id} was edited. New status: {$appointment->status}");
+}
+
 
 
 

@@ -3519,19 +3519,49 @@ div.comment-body p {
 .faq-question.active + .faq-answer {
   display: block;
 }
-
+/* payment page styles */
 .payment-container {
   max-width: 600px;
-  margin: 200px auto 40px; /* Push down from top, center horizontally */
-  padding: 20px;
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
+  margin: 200px auto;
+  padding: 40px;
+  background-color: #fff;
+  border: 2px solid #eeeeee;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  font-family: inherit !important;
   text-align: center;
 }
 
-.payment-container h2 {
-  margin-bottom: 20px;
-  font-size: 1.8rem;
+.payment-container h4 {
   color: #333;
+  margin-bottom: 20px;
+}
+
+.payment-container h4:nth-of-type(2) {
+  font-size: 20px;
+  color: #f03250;
+  margin-bottom: 30px;
+}
+
+#payBtn {
+  
+  background-color: #f03250;
+  color: #fff;
+  padding: 14px 28px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#payBtn:hover {
+  background-color: #cc2944;
+}
+
+/* override plugin font family */
+/* Override Easy Appointments default font */
+.ea-bootstrap,
+.ea-bootstrap * {
+  font-family: inherit !important;
 }
