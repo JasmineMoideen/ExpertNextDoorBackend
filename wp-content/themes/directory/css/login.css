@@ -1,0 +1,63 @@
+/* wp-login.php style improvements*/
+body.login {
+  background-color: #f9f9f9;
+}
+
+/* Login box styling */
+body.login #login {
+  width: 360px;
+  padding: 40px;
+  margin: 60px auto;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+/* WordPress logo */
+body.login h1 a {
+  background-image: url("../img/Logo.png"); /* Relative path from the CSS file */
+  background-size: contain;
+  width: 100%;
+  height: 80px;
+}
+
+/* Primary button (login) */
+.login .button-primary {
+  background: #f03250;
+  border-color: #f03250;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.login .button-primary:hover {
+  background: #d52c46;
+  border-color: #d52c46;
+}
+
+/* Labels, input fields */
+.login form {
+  margin-top: 20px;
+}
+
+.login label {
+  font-weight: 600;
+  color: #333;
+}
+
+.login form .input,
+.login input[type="text"] {
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Links below form */
+.login #nav a,
+.login #backtoblog a {
+  color: #f03250 !important;
+}
+
+.login #nav a:hover,
+.login #backtoblog a:hover {
+  color: #d52c46 !important;
+}

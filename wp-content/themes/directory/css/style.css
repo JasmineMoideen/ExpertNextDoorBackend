@@ -3464,6 +3464,14 @@ div.comment-body p {
   border-color: #c62828 !important;
 }
 
+/* override plugin font family */
+/* Override Easy Appointments default font */
+.ea-bootstrap,
+.ea-bootstrap * {
+  font-family: inherit !important;
+}
+
+
 /* contact form button */
 .contact__form .site-btn {
   background: #f03250;
@@ -3559,9 +3567,32 @@ div.comment-body p {
   background-color: #cc2944;
 }
 
-/* override plugin font family */
-/* Override Easy Appointments default font */
-.ea-bootstrap,
-.ea-bootstrap * {
-  font-family: inherit !important;
+
+/* customer registration page */
+
+.customer-registration
+{
+  max-width:500px;
+  margin:200px auto;
+  padding:20px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
+
+.customer-form
+{
+  width:100%;
+  margin:10px 0;
+  padding:10px;
+}
+.customer-form-btn
+{
+  background:#f03250;
+  color:white;
+  border:none;
+  border-radius:5px;
+}
+
+
+

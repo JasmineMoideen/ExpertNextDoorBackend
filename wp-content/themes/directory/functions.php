@@ -313,6 +313,7 @@ function render_my_customer_appointments()
         <th>Phone</th>
         <th>Name</th>
         <th>Email</th>
+        <th>Staff Name</th>
         <th>Action</th>
     </tr></thead><tbody>';
 
@@ -322,6 +323,11 @@ function render_my_customer_appointments()
             "SELECT field_id, value FROM wp_ea_fields WHERE app_id = %d",
             $appt->id
         ), OBJECT_K);
+        $worker_id = $appt->worker;
+        $worker_name = $wpdb->get_var($wpdb->prepare(
+            "SELECT name FROM wp_ea_staff WHERE id = %d",
+            $worker_id
+        ));
 
         $service_name = isset($fields[5]) ? $fields[5]->value : '';
         $description  = isset($fields[4]) ? $fields[4]->value : '';
@@ -332,6 +338,8 @@ function render_my_customer_appointments()
         $start_date = date('F j, Y', strtotime($appt->start));
         $start_time = date('g:i a', strtotime($appt->start));
         $end_time   = date('g:i a', strtotime($appt->end));
+
+
 
         echo '<tr>';
         echo '<td>' . esc_html($appt->id) . '</td>';
@@ -344,6 +352,7 @@ function render_my_customer_appointments()
         echo '<td>' . esc_html($phone) . '</td>';
         echo '<td>' . esc_html($customer_name) . '</td>';
         echo '<td>' . esc_html($customer_email) . '</td>';
+        echo '<td>' . esc_html($worker_name) . '</td>';
         echo '<td>';
         echo '<form method="post">';
         echo '<input type="hidden" name="delete_appointment_id" value="' . esc_attr($appt->id) . '">';
@@ -554,6 +563,8 @@ function ea_render_appointments_page()
 }
 
 
+/* Hook into ea_new_app , the hook used while inserting a new appointment in wp_ea_appointment table to get the appointment id */
+
 add_action('ea_new_app', 'handle_new_appointment', 10, 3);
 
 function handle_new_appointment($appointment_id, $appointment_data, $send_notifications)
@@ -565,6 +576,8 @@ function handle_new_appointment($appointment_id, $appointment_data, $send_notifi
 
     $_SESSION['ea_last_appointment_id'] = $appointment_id;
 }
+
+/* Create API endpoint for Razorpay */
 
 
 add_action('rest_api_init', function () {
@@ -602,30 +615,37 @@ function handle_razorpay_payment_webhook(WP_REST_Request $request)
         ['%d']
     );
 
-    // Clear session if update was successful
+   
     if ($updated !== false) {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        session_unset();  // Remove all session variables
-        session_destroy(); // Destroy the session
+        session_unset();  
+        session_destroy(); 
         return new WP_REST_Response(['success' => true, 'appointment_id' => $appointment_id], 200);
     } else {
         return new WP_REST_Response(['success' => false, 'error' => 'Failed to update DB'], 500);
     }
 }
 
-add_action('ea_edit_app', 'my_custom_logic_on_appointment_edit');
+/* Customize wp-login.php to include 2 types of registrations --> Customer(Subscriber) and Staff */
 
-function my_custom_logic_on_appointment_edit($appointment_id) {
-    // Fetch the updated appointment
-    global $wpdb;
-    $table = $wpdb->prefix . 'ea_appointments';
-    $appointment = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $appointment_id));
-
-    // Do something useful, e.g., log it or send a notification
-    error_log("📝 Appointment {$appointment_id} was edited. New status: {$appointment->status}");
+add_action('login_header', 'add_registration_buttons_above_login');
+function add_registration_buttons_above_login() {
+    echo '<div style="text-align:center;margin-bottom:15px;margin-top:15px;">
+        <a href="' . site_url('/customer-registration') . '" style="margin: 5px; padding: 8px 18px; background: #f03250; color: white; border-radius: 4px; text-decoration: none;">Customer Registration</a>
+        <a href="' . site_url('/staff-registration') . '" style="margin: 5px; padding: 8px 18px; background: #0073aa; color: white; border-radius: 4px; text-decoration: none;">Staff Registration</a>
+    </div>';
 }
+
+
+add_action('login_enqueue_scripts', 'enqueue_custom_login_css');
+function enqueue_custom_login_css() {
+    wp_enqueue_style('custom-login-style', get_stylesheet_directory_uri() . '/css/login.css');
+}
+
+
+
 
 
 
