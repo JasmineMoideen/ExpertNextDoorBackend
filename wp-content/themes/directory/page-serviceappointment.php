@@ -21,19 +21,15 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
             </div>
         </section>
         <?php
-        if (!session_id()) session_start();
-        if (isset($_SESSION['ea_last_appointment_id'])) {
-            $appointment_id = intval($_SESSION['ea_last_appointment_id']);
-            echo $appointment_id;
+        $last_appointment_id = get_user_meta(get_current_user_id(), 'ea_last_appointment_id', true);
+
 
         ?>
-            <script>
-                window.eaAppointmentId = <?php echo json_encode($appointment_id); ?>;
-                console.log("EA Appointment ID available for payment:", window.eaAppointmentId);
-            </script>
-        <?php
-        }
-        ?>
+        <script>
+            const lastAppointmentId = "<?php echo esc_js($last_appointment_id); ?>";
+            console.log("🧪 Debug - Last Appointment ID in service page:", lastAppointmentId);
+        </script>
+
 
 
 
@@ -61,16 +57,14 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === 1) {
                         const text = node.textContent.trim().toLowerCase();
-                        
+
                         if (text === "appointment booked successfully!") {
                             // Redirect to the payment page instead of reloading
                             setTimeout(() => {
                                 const paymentURL = window.location.origin + "/servicelisting/payment-page/";
-                                if (window.eaAppointmentId) {
-                                    window.location.href = `${paymentURL}?appointment_id=${window.eaAppointmentId}`;
-                                } else {
+
                                     window.location.href = paymentURL;
-                                }
+                                
                                 // Replace with your actual payment page path
                             }, 1500);
                         }
@@ -85,7 +79,7 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
                 childList: true,
                 subtree: true
             });
-            console.log("MutationObserver is watching for 'done'");
+            console.log("MutationObserver is watching for 'appointment booked suuccesfully'");
         } else {
             console.warn("Could not find booking container");
         }

@@ -567,14 +567,11 @@ function ea_render_appointments_page()
 
 add_action('ea_new_app', 'handle_new_appointment', 10, 3);
 
-function handle_new_appointment($appointment_id, $appointment_data, $send_notifications)
-{
-    // Example: Store appointment ID in PHP session
-    if (!session_id()) {
-        session_start();
+function handle_new_appointment($appointment_id, $appointment_data, $send_notifications) {
+    if (is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        update_user_meta($user_id, 'ea_last_appointment_id', $appointment_id);
     }
-
-    $_SESSION['ea_last_appointment_id'] = $appointment_id;
 }
 
 /* Create API endpoint for Razorpay */
