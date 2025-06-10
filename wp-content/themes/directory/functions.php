@@ -642,7 +642,84 @@ function enqueue_custom_login_css() {
 }
 
 
+add_action('admin_footer', function () {
+    if (!is_admin()) return;
 
+    $new_nonce = wp_create_nonce('wp_rest'); // Note: 'wp_rest' not 'ea_appointment'
+    ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        window.fresh_nonce = '<?php echo esc_js($new_nonce); ?>';
+
+        const observer = new MutationObserver(() => {
+            document.querySelectorAll('[name="_wpnonce"]').forEach(el => {
+                if (window.fresh_nonce && el.value !== window.fresh_nonce) {
+                    el.value = window.fresh_nonce;
+                    console.log("✅ _wpnonce updated to REST nonce:", window.fresh_nonce);
+                }
+            });
+
+            document.querySelectorAll('a, button, form').forEach(el => {
+                if (el.hasAttribute('onclick')) {
+                    el.setAttribute('onclick', el.getAttribute('onclick').replace(/_wpnonce=([a-zA-Z0-9]+)/, '_wpnonce=' + window.fresh_nonce));
+                }
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => observer.takeRecords(), 500);
+    });
+    </script>
+    <?php
+});
+
+
+/* Email Template Enhancements */
+add_action('ea_user_email_notification', 'custom_ea_html_email', 10, 1);
+
+function custom_ea_html_email($appointment_id) {
+     error_log("✅ Custom Hook Triggered for appointment: $appointment_id");
+    global $wpdb;
+
+    // Get appointment data from DB
+    $table = $wpdb->prefix . 'ea_appointments';
+    $appointment = $wpdb->get_row(
+        $wpdb->prepare("SELECT * FROM $table WHERE id = %d", $appointment_id),
+        ARRAY_A
+    );
+
+    if (!$appointment) {
+        return; // Invalid ID
+    }
+
+    $user_email = 'cmjasminehabeeb@gmail.com';
+
+    $subject = 'Your Appointment Confirmation – Expert Next Door';
+
+    $body = '
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px;">
+      <h2 style="color: #f03250;">Hello ' . esc_html($appointment['name']) . ',</h2>
+      <p style="font-size: 16px; color: #333;">
+        Thank you for booking with <strong>Expert Next Door</strong>! We\'re happy to confirm your appointment.
+      </p>
+      <div style="background-color: #fff; padding: 15px 20px; border: 1px solid #ccc; border-radius: 6px; margin: 20px 0;">
+        <p><strong>Service:</strong> ' . esc_html($appointment['service']) . '</p>
+        <p><strong>Date:</strong> ' . date('F j, Y', strtotime($appointment['start'])) . '</p>
+        <p><strong>Time:</strong> ' . date('H:i', strtotime($appointment['start'])) . ' – ' . date('H:i', strtotime($appointment['end'])) . '</p>
+        <p><strong>Status:</strong> ' . esc_html($appointment['status']) . '</p>
+      </div>
+      <p>If you need to make changes, reply to this email or contact us.</p>
+      <p>Best regards,<br><strong>Expert Next Door</strong></p>
+      <hr style="margin-top: 30px; border: none; border-top: 1px solid #ddd;">
+      <p style="font-size: 12px; color: #aaa; text-align: center;">
+        This is an automated message. Please do not reply unless you need support.
+      </p>
+    </div>';
+
+    $headers = ['Content-Type: text/html; charset=UTF-8'];
+
+    wp_mail($user_email, $subject, $body, $headers);
+}
 
 
 
