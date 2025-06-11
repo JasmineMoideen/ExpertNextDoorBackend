@@ -687,23 +687,40 @@ function custom_ea_html_email($appointment_id) {
         $wpdb->prepare("SELECT * FROM $table WHERE id = %d", $appointment_id),
         ARRAY_A
     );
-
     if (!$appointment) {
         return; // Invalid ID
     }
 
-    $user_email = 'cmjasminehabeeb@gmail.com';
+    $fields = $wpdb->get_results(
+    $wpdb->prepare(
+        "SELECT field_id, value FROM {$wpdb->prefix}ea_fields WHERE app_id = %d",
+        $appointment_id
+    ),
+    OBJECT_K
+);
+
+error_log(print_r($fields, true));
+
+$service_name = isset($fields[5]) ? $fields[5]->value : '';
+$user_email   = isset($fields[1]) ? $fields[1]->value : '';
+$user_name = isset($fields[2]) ? $fields[2]->value : '';
+
+error_log($service_name);
+error_log($user_email);
+
+    
+    
 
     $subject = 'Your Appointment Confirmation – Expert Next Door';
 
     $body = '
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px;">
-      <h2 style="color: #f03250;">Hello ' . esc_html($appointment['name']) . ',</h2>
+      <h2 style="color: #f03250;">Hello ' . esc_html($user_name) . ',</h2>
       <p style="font-size: 16px; color: #333;">
         Thank you for booking with <strong>Expert Next Door</strong>! We\'re happy to confirm your appointment.
       </p>
       <div style="background-color: #fff; padding: 15px 20px; border: 1px solid #ccc; border-radius: 6px; margin: 20px 0;">
-        <p><strong>Service:</strong> ' . esc_html($appointment['service']) . '</p>
+        <p><strong>Service:</strong> ' . esc_html($service_name) . '</p>
         <p><strong>Date:</strong> ' . date('F j, Y', strtotime($appointment['start'])) . '</p>
         <p><strong>Time:</strong> ' . date('H:i', strtotime($appointment['start'])) . ' – ' . date('H:i', strtotime($appointment['end'])) . '</p>
         <p><strong>Status:</strong> ' . esc_html($appointment['status']) . '</p>
