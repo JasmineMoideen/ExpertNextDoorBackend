@@ -47,38 +47,65 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
 
 <?php get_footer(); ?>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const observer = new MutationObserver((mutationsList) => {
-            for (let mutation of mutationsList) {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) {
-                        const text = node.textContent.trim().toLowerCase();
+document.addEventListener("DOMContentLoaded", function () {
+    const formContainer = document.querySelector("#ea_bootstrap");
 
-                        if (text === "appointment booked successfully!") {
-                           
-                            setTimeout(() => {
-                                const paymentURL = window.location.origin + "/servicelisting/payment-page/";
+    if (!formContainer) {
+        console.warn("Easy Appointments form container not found.");
+        return;
+    }
 
-                                    window.location.href = paymentURL;
-                                
+    const clearForm = () => {
+        const form = formContainer.querySelector("form");
+        if (form) {
+            form.reset(); // Basic reset
 
-                               
-                            }, 1500);
-                        }
-                    }
-                });
-            }
-        });
-
-        const target = document.querySelector("#ea_bootstrap") || document.body;
-        if (target) {
-            observer.observe(target, {
-                childList: true,
-                subtree: true
+            // Clear input values manually (in case .reset() doesn't handle some custom inputs)
+            form.querySelectorAll("input[type='text'], input[type='email'], textarea").forEach(input => {
+                input.value = '';
             });
 
-        } else {
-            console.warn("Could not find booking container");
+            // Reset all selects
+            form.querySelectorAll("select").forEach(select => {
+                select.selectedIndex = 0;
+            });
+
+            // Remove validation states (if using jQuery Validate or similar)
+            form.querySelectorAll(".valid, .error").forEach(el => {
+                el.classList.remove("valid", "error");
+                el.setAttribute("aria-invalid", "false");
+            });
+
+            console.log("EA form cleared.");
+        }
+    };
+
+    // Handle Cancel button
+    formContainer.addEventListener("click", function (e) {
+        if (e.target.matches(".ea-cancel")) {
+            e.preventDefault(); // prevent default Cancel behavior if needed
+            clearForm();
         }
     });
+
+    // Handle Submit button after successful booking (observe DOM for success message)
+    const observer = new MutationObserver((mutationsList) => {
+        for (let mutation of mutationsList) {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) {
+                    const text = node.textContent.trim().toLowerCase();
+                    if (text.includes("appointment booked successfully")) {
+                        clearForm(); // Clear the form after successful booking
+                    }
+                }
+            });
+        }
+    });
+
+    observer.observe(formContainer, {
+        childList: true,
+        subtree: true
+    });
+});
 </script>
+

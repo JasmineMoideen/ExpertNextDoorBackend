@@ -567,12 +567,34 @@ function ea_render_appointments_page()
 
 add_action('ea_new_app', 'handle_new_appointment', 10, 3);
 
-function handle_new_appointment($appointment_id, $appointment_data, $send_notifications) {
-    if (is_user_logged_in()) {
-        $user_id = get_current_user_id();
-        update_user_meta($user_id, 'ea_last_appointment_id', $appointment_id);
+function handle_new_appointment($appointment_id, $appointment_data, $all_data) {
+    if (isset($_GET['service_id'])) {
+        $new_service_id = intval($_GET['service_id']);
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'ea_appointments';
+
+        // Debug logs
+        error_log("🧪 appointment_id: $appointment_id");
+        error_log("🧪 new service_id: $new_service_id");
+        error_log("🧪 table: $table");
+
+        $updated = $wpdb->update(
+            $table,
+            ['service' => $new_service_id],
+            ['id' => $appointment_id],
+            ['%d'],
+            ['%d']
+        );
+
+        if ($updated !== false || $updated === 0) {
+            error_log("✅ Updated appointment {$appointment_id} with service_id = {$new_service_id}");
+        } else {
+            error_log("❌ DB update failed: " . $wpdb->last_error);
+        }
     }
 }
+
 
 /* Create API endpoint for Razorpay */
 
@@ -678,7 +700,7 @@ add_action('admin_footer', function () {
 add_action('ea_user_email_notification', 'custom_ea_html_email', 10, 1);
 
 function custom_ea_html_email($appointment_id) {
-     error_log("✅ Custom Hook Triggered for appointment: $appointment_id");
+     
     global $wpdb;
 
     // Get appointment data from DB
@@ -738,7 +760,19 @@ error_log($user_email);
     wp_mail($user_email, $subject, $body, $headers);
 }
 
+/* ajax function to clear session */
+add_action('wp_ajax_clear_booking_session', 'clear_booking_session');
+add_action('wp_ajax_nopriv_clear_booking_session', 'clear_booking_session');
 
+function clear_booking_session() {
+if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        session_unset();  
+        session_destroy(); 
+
+    wp_send_json_success('Session cleared');
+}
 
 
 

@@ -50,38 +50,4 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
 
 
 <?php get_footer(); ?>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const observer = new MutationObserver((mutationsList) => {
-            for (let mutation of mutationsList) {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) {
-                        const text = node.textContent.trim().toLowerCase();
 
-                        if (text === "appointment booked successfully!") {
-                            // Redirect to the payment page instead of reloading
-                            setTimeout(() => {
-                                const paymentURL = window.location.origin + "/servicelisting/payment-page/";
-
-                                    window.location.href = paymentURL;
-                                
-                                // Replace with your actual payment page path
-                            }, 1500);
-                        }
-                    }
-                });
-            }
-        });
-
-        const target = document.querySelector("#ea_bootstrap") || document.body;
-        if (target) {
-            observer.observe(target, {
-                childList: true,
-                subtree: true
-            });
-            console.log("MutationObserver is watching for 'appointment booked suuccesfully'");
-        } else {
-            console.warn("Could not find booking container");
-        }
-    });
-</script>
