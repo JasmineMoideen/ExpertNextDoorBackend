@@ -562,36 +562,81 @@ function ea_render_appointments_page()
     echo '</div>';
 }
 
+/* Get service id from url while appointment booking */
+
+add_action('init', function () {
+    if (is_user_logged_in() && isset($_GET['service_id'])) {
+        update_user_meta(get_current_user_id(), '_ea_temp_service_id', intval($_GET['service_id']));
+        error_log('📥 Stored service_id in user meta: ' . $_GET['service_id']);
+    }
+});
+
 
 /* Hook into ea_new_app , the hook used while inserting a new appointment in wp_ea_appointment table to get the appointment id */
 
 add_action('ea_new_app', 'handle_new_appointment', 10, 3);
 
-function handle_new_appointment($appointment_id, $appointment_data, $all_data) {
-    if (isset($_GET['service_id'])) {
-        $new_service_id = intval($_GET['service_id']);
+function handle_new_appointment($appointment_id, $appointment_data, $all_data)
+{
 
+    if (is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        update_user_meta($user_id, 'ea_last_appointment_id', $appointment_id);
+    }
+    $service_id = get_user_meta($user_id, '_ea_temp_service_id', true);
+
+    if ($service_id) {
         global $wpdb;
-        $table = $wpdb->prefix . 'ea_appointments';
 
-        // Debug logs
-        error_log("🧪 appointment_id: $appointment_id");
-        error_log("🧪 new service_id: $new_service_id");
-        error_log("🧪 table: $table");
+
+        // Step 1: Get service name from wp_ea_services
+        $services_table = $wpdb->prefix . 'ea_services';
+        $service_name = $wpdb->get_var(
+            $wpdb->prepare("SELECT name FROM {$services_table} WHERE id = %d", $service_id)
+        );
+
+        if (!$service_name) {
+            error_log("❌ Service ID {$service_id} not found in ea_services.");
+            return;
+        }
+
+        // Step 2: Update wp_ea_appointments table
+        $table = $wpdb->prefix . 'ea_appointments';
 
         $updated = $wpdb->update(
             $table,
-            ['service' => $new_service_id],
+            ['service' => intval($service_id)],
             ['id' => $appointment_id],
             ['%d'],
             ['%d']
         );
-
         if ($updated !== false || $updated === 0) {
-            error_log("✅ Updated appointment {$appointment_id} with service_id = {$new_service_id}");
+            error_log("✅ Updated appointment {$appointment_id} with service_id = {$service_id}");
         } else {
             error_log("❌ DB update failed: " . $wpdb->last_error);
         }
+
+
+
+        // Step 3: Update wp_ea_fields (field_id = 5) with service name
+        $fields_table = $wpdb->prefix . 'ea_fields';
+        $field_updated = $wpdb->update(
+            $fields_table,
+            ['value' => $service_name],
+            [
+                'app_id' => $appointment_id,
+                'field_id' => 5
+            ],
+            ['%s'],
+            ['%d', '%d']
+        );
+        if ($field_updated !== false || $field_updated === 0) {
+            error_log("✅ Updated ea_fields for appointment {$appointment_id}, field_id 5 with value = {$service_name}");
+        } else {
+            error_log("❌ Fields table update failed: " . $wpdb->last_error);
+        }
+    } else {
+        error_log('again service id is not set');
     }
 }
 
@@ -634,13 +679,13 @@ function handle_razorpay_payment_webhook(WP_REST_Request $request)
         ['%d']
     );
 
-   
+
     if ($updated !== false) {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        session_unset();  
-        session_destroy(); 
+        session_unset();
+        session_destroy();
         return new WP_REST_Response(['success' => true, 'appointment_id' => $appointment_id], 200);
     } else {
         return new WP_REST_Response(['success' => false, 'error' => 'Failed to update DB'], 500);
@@ -650,7 +695,8 @@ function handle_razorpay_payment_webhook(WP_REST_Request $request)
 /* Customize wp-login.php to include 2 types of registrations --> Customer(Subscriber) and Staff */
 
 add_action('login_header', 'add_registration_buttons_above_login');
-function add_registration_buttons_above_login() {
+function add_registration_buttons_above_login()
+{
     echo '<div style="text-align:center;margin-bottom:15px;margin-top:15px;">
         <a href="' . site_url('/customer-registration') . '" style="margin: 5px; padding: 8px 18px; background: #f03250; color: white; border-radius: 4px; text-decoration: none;">Customer Registration</a>
         <a href="' . site_url('/staff-registration') . '" style="margin: 5px; padding: 8px 18px; background: #0073aa; color: white; border-radius: 4px; text-decoration: none;">Staff Registration</a>
@@ -659,7 +705,8 @@ function add_registration_buttons_above_login() {
 
 
 add_action('login_enqueue_scripts', 'enqueue_custom_login_css');
-function enqueue_custom_login_css() {
+function enqueue_custom_login_css()
+{
     wp_enqueue_style('custom-login-style', get_stylesheet_directory_uri() . '/css/login.css');
 }
 
@@ -668,39 +715,43 @@ add_action('admin_footer', function () {
     if (!is_admin()) return;
 
     $new_nonce = wp_create_nonce('wp_rest'); // Note: 'wp_rest' not 'ea_appointment'
-    ?>
+?>
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        window.fresh_nonce = '<?php echo esc_js($new_nonce); ?>';
+        document.addEventListener("DOMContentLoaded", function() {
+            window.fresh_nonce = '<?php echo esc_js($new_nonce); ?>';
 
-        const observer = new MutationObserver(() => {
-            document.querySelectorAll('[name="_wpnonce"]').forEach(el => {
-                if (window.fresh_nonce && el.value !== window.fresh_nonce) {
-                    el.value = window.fresh_nonce;
-                    console.log("✅ _wpnonce updated to REST nonce:", window.fresh_nonce);
-                }
+            const observer = new MutationObserver(() => {
+                document.querySelectorAll('[name="_wpnonce"]').forEach(el => {
+                    if (window.fresh_nonce && el.value !== window.fresh_nonce) {
+                        el.value = window.fresh_nonce;
+                        console.log("✅ _wpnonce updated to REST nonce:", window.fresh_nonce);
+                    }
+                });
+
+                document.querySelectorAll('a, button, form').forEach(el => {
+                    if (el.hasAttribute('onclick')) {
+                        el.setAttribute('onclick', el.getAttribute('onclick').replace(/_wpnonce=([a-zA-Z0-9]+)/, '_wpnonce=' + window.fresh_nonce));
+                    }
+                });
             });
 
-            document.querySelectorAll('a, button, form').forEach(el => {
-                if (el.hasAttribute('onclick')) {
-                    el.setAttribute('onclick', el.getAttribute('onclick').replace(/_wpnonce=([a-zA-Z0-9]+)/, '_wpnonce=' + window.fresh_nonce));
-                }
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
             });
+            setTimeout(() => observer.takeRecords(), 500);
         });
-
-        observer.observe(document.body, { childList: true, subtree: true });
-        setTimeout(() => observer.takeRecords(), 500);
-    });
     </script>
-    <?php
+<?php
 });
 
 
 /* Email Template Enhancements */
 add_action('ea_user_email_notification', 'custom_ea_html_email', 10, 1);
 
-function custom_ea_html_email($appointment_id) {
-     
+function custom_ea_html_email($appointment_id)
+{
+
     global $wpdb;
 
     // Get appointment data from DB
@@ -714,24 +765,24 @@ function custom_ea_html_email($appointment_id) {
     }
 
     $fields = $wpdb->get_results(
-    $wpdb->prepare(
-        "SELECT field_id, value FROM {$wpdb->prefix}ea_fields WHERE app_id = %d",
-        $appointment_id
-    ),
-    OBJECT_K
-);
+        $wpdb->prepare(
+            "SELECT field_id, value FROM {$wpdb->prefix}ea_fields WHERE app_id = %d",
+            $appointment_id
+        ),
+        OBJECT_K
+    );
 
-error_log(print_r($fields, true));
+    error_log(print_r($fields, true));
 
-$service_name = isset($fields[5]) ? $fields[5]->value : '';
-$user_email   = isset($fields[1]) ? $fields[1]->value : '';
-$user_name = isset($fields[2]) ? $fields[2]->value : '';
+    $service_name = isset($fields[5]) ? $fields[5]->value : '';
+    $user_email   = isset($fields[1]) ? $fields[1]->value : '';
+    $user_name = isset($fields[2]) ? $fields[2]->value : '';
 
-error_log($service_name);
-error_log($user_email);
+    error_log($service_name);
+    error_log($user_email);
 
-    
-    
+
+
 
     $subject = 'Your Appointment Confirmation – Expert Next Door';
 
@@ -764,12 +815,13 @@ error_log($user_email);
 add_action('wp_ajax_clear_booking_session', 'clear_booking_session');
 add_action('wp_ajax_nopriv_clear_booking_session', 'clear_booking_session');
 
-function clear_booking_session() {
-if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        session_unset();  
-        session_destroy(); 
+function clear_booking_session()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    session_unset();
+    session_destroy();
 
     wp_send_json_success('Session cleared');
 }
