@@ -567,7 +567,6 @@ function ea_render_appointments_page()
 add_action('init', function () {
     if (is_user_logged_in() && isset($_GET['service_id'])) {
         update_user_meta(get_current_user_id(), '_ea_temp_service_id', intval($_GET['service_id']));
-        error_log('📥 Stored service_id in user meta: ' . $_GET['service_id']);
     }
 });
 
@@ -595,10 +594,7 @@ function handle_new_appointment($appointment_id, $appointment_data, $all_data)
             $wpdb->prepare("SELECT name FROM {$services_table} WHERE id = %d", $service_id)
         );
 
-        if (!$service_name) {
-            error_log("❌ Service ID {$service_id} not found in ea_services.");
-            return;
-        }
+
 
         // Step 2: Update wp_ea_appointments table
         $table = $wpdb->prefix . 'ea_appointments';
@@ -610,11 +606,10 @@ function handle_new_appointment($appointment_id, $appointment_data, $all_data)
             ['%d'],
             ['%d']
         );
-        if ($updated !== false || $updated === 0) {
-            error_log("✅ Updated appointment {$appointment_id} with service_id = {$service_id}");
-        } else {
-            error_log("❌ DB update failed: " . $wpdb->last_error);
-        }
+
+
+        delete_user_meta($user_id, '_ea_temp_service_id');
+
 
 
 
@@ -630,13 +625,6 @@ function handle_new_appointment($appointment_id, $appointment_data, $all_data)
             ['%s'],
             ['%d', '%d']
         );
-        if ($field_updated !== false || $field_updated === 0) {
-            error_log("✅ Updated ea_fields for appointment {$appointment_id}, field_id 5 with value = {$service_name}");
-        } else {
-            error_log("❌ Fields table update failed: " . $wpdb->last_error);
-        }
-    } else {
-        error_log('again service id is not set');
     }
 }
 
@@ -746,7 +734,7 @@ add_action('admin_footer', function () {
 });
 
 
-/* Email Template Enhancements */
+/* User Notification Email*/
 add_action('ea_user_email_notification', 'custom_ea_html_email', 10, 1);
 
 function custom_ea_html_email($appointment_id)
@@ -772,14 +760,12 @@ function custom_ea_html_email($appointment_id)
         OBJECT_K
     );
 
-    error_log(print_r($fields, true));
+
 
     $service_name = isset($fields[5]) ? $fields[5]->value : '';
     $user_email   = isset($fields[1]) ? $fields[1]->value : '';
     $user_name = isset($fields[2]) ? $fields[2]->value : '';
 
-    error_log($service_name);
-    error_log($user_email);
 
 
 
@@ -811,20 +797,91 @@ function custom_ea_html_email($appointment_id)
     wp_mail($user_email, $subject, $body, $headers);
 }
 
-/* ajax function to clear session */
-add_action('wp_ajax_clear_booking_session', 'clear_booking_session');
-add_action('wp_ajax_nopriv_clear_booking_session', 'clear_booking_session');
 
-function clear_booking_session()
+/* admin email notification */
+
+
+    add_action('ea_admin_email_notification', 'custom_admin_email_template', 12, 1);
+
+function custom_admin_email_template($appointment_id)
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    session_unset();
-    session_destroy();
+    error_log("🪵 Hook triggered for admin email for appointment ID: $appointment_id");
+    global $wpdb;
 
-    wp_send_json_success('Session cleared');
+    $appointments_table = $wpdb->prefix . 'ea_appointments';
+    $appointment = $wpdb->get_row(
+        $wpdb->prepare("SELECT * FROM $appointments_table WHERE id = %d", $appointment_id)
+    );
+
+    if (!$appointment) return;
+
+    $fields = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT field_id, value FROM {$wpdb->prefix}ea_fields WHERE app_id = %d",
+            $appointment_id
+        ),
+        OBJECT_K
+    );
+
+
+
+    $service_name = isset($fields[5]) ? $fields[5]->value : '';
+    $user_email   = isset($fields[1]) ? $fields[1]->value : '';
+    $user_name = isset($fields[2]) ? $fields[2]->value : '';
+    $user_phone = isset($fields[3]) ? $fields[3]->value : '';
+
+
+    $location_id = $appointment->location;
+
+    $location_name = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT location FROM {$wpdb->prefix}ea_locations WHERE id = %d",
+            $location_id
+        )
+    );
+
+
+
+    $staff_id = $appointment->worker;
+
+    $staff_name = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT name FROM {$wpdb->prefix}ea_staff WHERE id = %d",
+            $staff_id
+        )
+    );
+
+    // Admin email
+    $admin_email = get_option('admin_email');
+
+    // Subject and custom HTML email
+    $subject = '🔔 New Appointment Received';
+
+    ob_start();
+?>
+    <div style="font-family: Arial, sans-serif;">
+        <h2 style="color: #333;">New Appointment Notification</h2>
+        <p><strong>Name:</strong> <?php echo esc_html($user_name); ?></p>
+        <p><strong>Email:</strong> <?php echo esc_html($user_email); ?></p>
+        <p><strong>Phone:</strong> <?php echo esc_html($user_phone); ?></p>
+        <p><strong>Service:</strong> <?php echo esc_html($service_name); ?></p>
+        <p><strong>Location:</strong> <?php echo esc_html($location_name); ?></p>
+        <p><strong>Worker:</strong> <?php echo esc_html($staff_name); ?></p>
+        <p><strong>Start Time:</strong> <?php echo esc_html($appointment->start); ?></p>
+        <p><strong>End Time:</strong> <?php echo esc_html($appointment->end); ?></p>
+        <p><strong>Price:</strong> <?php echo esc_html($appointment->price); ?></p>
+        <p><strong>Payment Status:</strong> <?php echo esc_html($appointment->payment_status); ?></p>
+    </div>
+<?php
+    $message = ob_get_clean();
+
+    wp_mail($admin_email, $subject, $message, [
+        'Content-Type: text/html; charset=UTF-8'
+    ]);
 }
+
+
+
 
 
 

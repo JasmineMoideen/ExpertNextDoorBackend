@@ -37,20 +37,15 @@ $last_appointment_id = get_user_meta(get_current_user_id(), 'ea_last_appointment
             window.location.href = "<?php echo site_url('/thank-you'); ?>";
         },
         modal: {
-            ondismiss: function() {
-                // AJAX call to clear session
-                fetch('<?php echo admin_url("admin-ajax.php"); ?>?action=clear_booking_session')
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log("Session cleared:", data);
-                        window.location.href = "<?php echo site_url('/'); ?>";
-                    })
-                    .catch(err => {
-                        console.warn("Session clear failed:", err);
-                        window.location.href = "<?php echo site_url('/'); ?>";
-                    });
-            }
+        ondismiss: function () {
+            // Razorpay modal was closed without payment
+            // Clear local storage/session storage if needed
+            sessionStorage.clear();
+            localStorage.clear();
+            // Redirect to homepage
+            window.location.href = "/servicelisting";
         }
+    }
     };
 
     const rzp = new Razorpay(options);
