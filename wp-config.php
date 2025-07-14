@@ -20,7 +20,7 @@
 
 // ** Database settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'servicelisting' );
+define( 'DB_NAME', 'servicelisting-react' );
 
 /** Database username */
 define( 'DB_USER', 'root' );
@@ -92,6 +92,8 @@ define('WP_DEBUG_DISPLAY', false);
 define('WP_DEBUG_LOG', true); 
 /* Add any custom values between this line and the "stop editing" line. */
 define('FS_METHOD', 'direct');
+
+
 
 
 

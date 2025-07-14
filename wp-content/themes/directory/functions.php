@@ -882,6 +882,36 @@ function custom_admin_email_template($appointment_id)
 
 
 
+/* Expose acf fields to REST API */
+add_action('rest_api_init', function () {
+    register_rest_field(
+        'service-category',
+        'acf',
+        [
+            'get_callback' => function ($term) {
+                $term_id = $term['id'];
+                $fields = get_fields("service-category_" . $term_id);
+
+                // Check and convert the image field
+                if (!empty($fields['service_category_image'])) {
+                    $image = $fields['service_category_image'];
+
+                    if (is_numeric($image)) {
+                        $fields['service_category_image'] = wp_get_attachment_image_url($image, 'medium');
+                    } elseif (is_array($image) && isset($image['url'])) {
+                        $fields['service_category_image'] = $image['url'];
+                    }
+                }
+
+                return $fields;
+            },
+            'schema' => null,
+        ]
+    );
+});
+
+
+
 
 
 
