@@ -911,6 +911,23 @@ add_action('rest_api_init', function () {
 });
 
 
+add_action('rest_api_init', function () {
+    register_rest_field(
+        'user-profile',
+        'acf',
+        [
+            'get_callback' => function ($post_arr) {
+                return get_fields($post_arr['id']); // returns all ACF fields as-is
+            },
+            'schema' => null,
+        ]
+    );
+});
+
+/*to enable application passwords */
+add_filter('wp_is_application_passwords_available','__return_true');
+
+
 
 
 
