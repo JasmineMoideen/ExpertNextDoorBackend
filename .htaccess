@@ -10,11 +10,11 @@ php_value max_input_vars 3000
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-RewriteBase /servicelisting/
+RewriteBase /servicelisting-react/
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /servicelisting/index.php [L]
+RewriteRule . /servicelisting-react/index.php [L]
 </IfModule>
 
 
