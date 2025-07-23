@@ -28,8 +28,7 @@ get_header(); ?>
                         if (!empty($terms) && !is_wp_error($terms)) {
                             foreach ($terms as $term) {
                                 // Get ACF image field from the term
-                                $image_id = get_field('service_category_image', $term);
-                                $image_url = wp_get_attachment_image_url($image_id, 'medium');
+                              $image_url = get_field('service_category_image', $term);
 
                         ?>
                                 <li><a href="<?php echo get_term_link($term); ?>"><img src="<?php echo $image_url;?>" alt=""> <?php echo $term->name;?></a></li>
