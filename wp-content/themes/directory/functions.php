@@ -52,27 +52,3 @@ add_action('wp_enqueue_scripts', 'service_listing_enqueue_scripts');
 add_filter('wpcf7_autop_or_not', '__return_false');
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-?>
