@@ -4,6 +4,7 @@
  * Template Name: Appointment Booking Service
  */
 get_header('listing');
+$current_url = home_url(add_query_arg(null, null));
 $current_user = wp_get_current_user();
 $allowed_roles = array('subscriber', 'customer');
 
@@ -27,7 +28,7 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
         ?>
         <script>
             const lastAppointmentId = "<?php echo esc_js($last_appointment_id); ?>";
-            console.log("🧪 Debug - Last Appointment ID in service page:", lastAppointmentId);
+           
         </script>
 
 
@@ -41,7 +42,7 @@ if (is_user_logged_in() && array_intersect($allowed_roles, $current_user->roles)
             <div class="container" style="padding-top: 120px; min-height: 60vh;">
                 <div class="ea-login-message" style="background: #fff3cd; padding: 20px; border: 1px solid #ffeeba; border-radius: 6px;">
                     <p><strong>You must be logged in with the proper role to book an appointment.</strong></p>
-                    <a href="<?php echo wp_login_url(get_permalink()); ?>" class="primary-btn">Login here</a>
+                    <a href="<?php echo esc_url(wp_login_url($current_url)); ?>" class="primary-btn">Login here</a>
                 </div>
             </div>
         </section>
