@@ -11,7 +11,8 @@ if (!defined('ABSPATH')) {
 }
 
 // 1. Add menu item for subscribers
-function my_appointments_add_menu_page() {
+function my_appointments_add_menu_page()
+{
     if (!is_user_logged_in()) return;
 
     $user = wp_get_current_user();
@@ -31,7 +32,8 @@ function my_appointments_add_menu_page() {
 add_action('admin_menu', 'my_appointments_add_menu_page');
 
 // 2. Admin page content wrapper
-function render_my_customer_appointments_page() {
+function render_my_customer_appointments_page()
+{
     echo '<div class="wrap">';
     echo do_shortcode('[my_customer_appointments]');
     echo '</div>';
@@ -41,7 +43,8 @@ function render_my_customer_appointments_page() {
 add_shortcode('my_customer_appointments', 'render_my_customer_appointments');
 
 // 4. Main appointment rendering logic (used in shortcode and admin page)
-function render_my_customer_appointments() {
+function render_my_customer_appointments()
+{
     if (!is_user_logged_in()) {
         echo '<p>You must be logged in to view your appointments.</p>';
         return;
@@ -86,13 +89,21 @@ function render_my_customer_appointments() {
             $appt->worker
         ));
 
-        $service_name   = isset($fields[5]) ? $fields[5]->value : '';
+        // Get service name
+        $service_name = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT name FROM {$wpdb->prefix}ea_services WHERE id = %d",
+                $appt->service
+            )
+        );
+
+       
         $description    = isset($fields[4]) ? $fields[4]->value : '';
         $phone          = isset($fields[3]) ? $fields[3]->value : '';
         $customer_name  = isset($fields[2]) ? $fields[2]->value : '';
         $customer_email = isset($fields[1]) ? $fields[1]->value : '';
 
-        $start_date = date('F j, Y', strtotime($appt->date)); 
+        $start_date = date('F j, Y', strtotime($appt->date));
         $start_time = date('g:i a', strtotime($appt->start));
         $end_time   = date('g:i a', strtotime($appt->end));
 
@@ -121,7 +132,8 @@ function render_my_customer_appointments() {
 }
 
 // 5. Handle deletion of appointments
-function handle_delete_appointment() {
+function handle_delete_appointment()
+{
     if (
         isset($_POST['delete_appointment']) &&
         !empty($_POST['delete_appointment_id']) &&

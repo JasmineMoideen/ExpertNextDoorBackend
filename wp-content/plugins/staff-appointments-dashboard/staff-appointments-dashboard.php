@@ -66,7 +66,8 @@ function render_my_staff_appointments()
         <th>ID</th>
         <th>Service</th>
         <th>Date</th>
-        <th>Time</th>
+        <th>Start Time</th>
+        <th>End Time</th>
         <th>Status</th>
         <th>Payment Status</th>
         <th>Description</th>
@@ -81,13 +82,19 @@ function render_my_staff_appointments()
             $appt->id
         ), OBJECT_K);
 
-        $service_name    = isset($fields[5]) ? $fields[5]->value : '';
+        // Get service name
+        $service_name = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT name FROM {$wpdb->prefix}ea_services WHERE id = %d",
+                $appt->service
+            )
+        );
         $description     = isset($fields[4]) ? $fields[4]->value : '';
         $phone           = isset($fields[3]) ? $fields[3]->value : '';
         $customer_name   = isset($fields[2]) ? $fields[2]->value : '';
         $customer_email  = isset($fields[1]) ? $fields[1]->value : '';
 
-        $start_date = date('F j, Y', strtotime($appt->start));
+        $start_date = date('F j, Y', strtotime($appt->date));
         $start_time = date('g:i a', strtotime($appt->start));
         $end_time   = date('g:i a', strtotime($appt->end));
 
@@ -95,7 +102,8 @@ function render_my_staff_appointments()
         echo '<td>' . esc_html($appt->id) . '</td>';
         echo '<td>' . esc_html($service_name) . '</td>';
         echo '<td>' . esc_html($start_date) . '</td>';
-        echo '<td>' . esc_html("$start_time – $end_time") . '</td>';
+        echo '<td>' . esc_html($start_time) . '</td>';
+        echo '<td>' . esc_html($end_time) . '</td>';
         echo '<td>' . esc_html($appt->status) . '</td>';
         echo '<td>' . esc_html($appt->payment_status) . '</td>';
         echo '<td>' . esc_html($description) . '</td>';

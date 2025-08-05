@@ -35,7 +35,7 @@ function ea_render_appointments_page()
     // Get upcoming appointments
     $appointments = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT id, date, service, worker FROM {$wpdb->prefix}ea_appointments WHERE date >= %s ORDER BY date ASC LIMIT 20",
+            "SELECT * FROM {$wpdb->prefix}ea_appointments WHERE date >= %s ORDER BY date ASC LIMIT 20",
             $today
         )
     );
@@ -48,12 +48,18 @@ function ea_render_appointments_page()
         echo '<thead>
                 <tr>
                     <th>Date</th>
+                     <th>Start Time</th>
+                      <th>End Time</th>
                     <th>Staff</th>
                     <th>Service</th>
+                     <th>Payment Status</th>
+                   
                 </tr>
               </thead><tbody>';
 
+
         foreach ($appointments as $appointment) {
+
             // Get staff name
             $staff_name = $wpdb->get_var(
                 $wpdb->prepare(
@@ -70,10 +76,16 @@ function ea_render_appointments_page()
                 )
             );
 
+
+            $start_time = date('g:i a', strtotime($appointment->start));
+            $end_time   = date('g:i a', strtotime($appointment->end));
             echo '<tr>';
             echo '<td>' . esc_html($appointment->date) . '</td>';
+            echo '<td>' . esc_html($start_time) . '</td>';
+            echo '<td>' . esc_html($end_time) . '</td>';
             echo '<td>' . esc_html($staff_name ?? 'Unknown') . '</td>';
             echo '<td>' . esc_html($service_name ?? '-') . '</td>';
+            echo '<td>' . esc_html($appointment->payment_status) . '</td>';
             echo '</tr>';
         }
 
