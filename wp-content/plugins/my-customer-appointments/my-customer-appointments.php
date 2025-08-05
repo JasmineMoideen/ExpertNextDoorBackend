@@ -92,7 +92,7 @@ function render_my_customer_appointments() {
         $customer_name  = isset($fields[2]) ? $fields[2]->value : '';
         $customer_email = isset($fields[1]) ? $fields[1]->value : '';
 
-        $start_date = date('F j, Y', strtotime($appt->date)); //fix
+        $start_date = date('F j, Y', strtotime($appt->date)); 
         $start_time = date('g:i a', strtotime($appt->start));
         $end_time   = date('g:i a', strtotime($appt->end));
 
