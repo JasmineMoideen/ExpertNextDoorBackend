@@ -1,0 +1,17 @@
+[06-Aug-2025 11:40:45 UTC] PHP Notice:  Function _load_textdomain_just_in_time was called <strong>incorrectly</strong>. Translation loading for the <code>acf</code> domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early. Translations should be loaded at the <code>init</code> action or later. Please see <a href="https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/">Debugging in WordPress</a> for more information. (This message was added in version 6.7.0.) in /opt/lampp/htdocs/servicelisting-react/wp-includes/functions.php on line 6121
+[06-Aug-2025 11:40:45 UTC] PHP Deprecated:  strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated in /opt/lampp/htdocs/servicelisting-react/wp-includes/functions.php on line 7360
+[06-Aug-2025 11:40:45 UTC] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in /opt/lampp/htdocs/servicelisting-react/wp-includes/functions.php on line 2195
+[06-Aug-2025 11:40:45 UTC] PHP Notice:  Function _load_textdomain_just_in_time was called <strong>incorrectly</strong>. Translation loading for the <code>acf</code> domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early. Translations should be loaded at the <code>init</code> action or later. Please see <a href="https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/">Debugging in WordPress</a> for more information. (This message was added in version 6.7.0.) in /opt/lampp/htdocs/servicelisting-react/wp-includes/functions.php on line 6121
+[06-Aug-2025 11:40:45 UTC] PHP Deprecated:  strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated in /opt/lampp/htdocs/servicelisting-react/wp-includes/functions.php on line 7360
+[06-Aug-2025 11:40:45 UTC] PHP Deprecated:  str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated in /opt/lampp/htdocs/servicelisting-react/wp-includes/functions.php on line 2195
+[06-Aug-2025 11:40:46 UTC] Details are: xzszx, majeed, dede@gmail.com, 1234567890,swdsw
+[06-Aug-2025 11:40:46 UTC] Attempting insert with data: Array
+(
+    [first_name] => xzszx
+    [last_name] => majeed
+    [your_email] => dede@gmail.com
+    [phone_number] => 1234567890
+    [your_message] => swdsw
+)
+
+[06-Aug-2025 11:40:46 UTC] Contact form insert successful: ID 1
