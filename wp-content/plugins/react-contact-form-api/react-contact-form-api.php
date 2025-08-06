@@ -10,6 +10,12 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+add_action( 'rest_api_init', function() {
+    header("Access-Control-Allow-Origin: *"); // or your frontend URL
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type");
+}, 15 );
+
 // Register REST API route
 add_action('rest_api_init', function () {
     register_rest_route('react-form/v1', '/submit/', array(
