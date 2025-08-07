@@ -4,7 +4,7 @@
     <h1 style="font-size: 36px; color: #f03250;">🎉 Thank You!</h1>
     <p style="font-size: 18px; color: #555;">Your payment was successful.</p>
     <p style="font-size: 16px; color: #777;">We’ve received your appointment and will contact you soon.</p>
-    <a href="<?php echo get_home_url();?>" style="margin-top: 30px; display: inline-block; background: #f03250; color: white; padding: 12px 24px; border-radius: 5px; text-decoration: none;">Back to Home</a>
+    <a href="https://expert-next-door.vercel.app/" style="margin-top: 30px; display: inline-block; background: #f03250; color: white; padding: 12px 24px; border-radius: 5px; text-decoration: none;">Back to Home</a>
 </div>
 
 <script>
