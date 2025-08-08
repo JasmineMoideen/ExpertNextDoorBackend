@@ -23,7 +23,7 @@ get_header('listing');
         $user_id = wp_insert_user($userdata);
 
         if (!is_wp_error($user_id)) {
-            echo '<p style="color:green;">✅ Staff registration successful! <a href="' . wp_login_url(home_url()) . '">Login here</a>.</p>';
+            echo '<p style="color:green;">✅ Staff registration successful! <a href="' . wp_login_url('https://expert-next-door.vercel.app/') . '">Login here</a>.</p>';
         } else {
             echo '<p style="color:red;">❌ ' . $user_id->get_error_message() . '</p>';
         }
