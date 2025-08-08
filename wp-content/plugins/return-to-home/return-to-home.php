@@ -6,31 +6,11 @@ Version: 1.1
 Author: Your Name
 */
 
-add_action('admin_menu', function() {
-    add_menu_page(
-        'Return to Home',         // Page title
-        'Return to Home',         // Menu title
-        'read',                   // Capability
-        'return-to-home',         // Menu slug
-        '__return_null',          // Temporary callback
-        'dashicons-admin-home',   // Icon
-        1                         // Position
-    );
-});
-
-add_action('admin_init', function() {
-    if (isset($_GET['page']) && $_GET['page'] === 'return-to-home') {
-        wp_redirect('https://expert-next-door.vercel.app/');
-        exit;
-    }
-});
 
 
-add_action('admin_bar_menu', function($wp_admin_bar) {
-    if (!current_user_can('administrator')) {
-        $wp_admin_bar->remove_node('view-site'); // Removes "Visit Site" link
-    }
-}, 999);
+add_filter('show_admin_bar', '__return_true');
+
+
 
 
 add_action('admin_bar_menu', function($admin_bar) {
@@ -43,3 +23,9 @@ add_action('admin_bar_menu', function($admin_bar) {
         ]);
     }
 }, 100);
+
+add_action('admin_bar_menu', function($wp_admin_bar) {
+    if (!current_user_can('administrator')) {
+        $wp_admin_bar->remove_node('view-site'); // Removes "Visit Site" link
+    }
+}, 999);
