@@ -6,6 +6,21 @@ Version: 1.1
 Author: Your Name
 */
 
+add_action('admin_bar_menu', function($admin_bar) {
+    // Remove default "Visit Site"
+    $admin_bar->remove_node('view-site');
+
+    // Add new "Visit Site" pointing to React app
+    $admin_bar->add_node([
+        'id'    => 'view-site',
+        'title' => 'Visit Site',
+        'href'  => 'https://expert-next-door.vercel.app/',
+        'meta'  => [
+            'title'  => 'Visit React App',
+            'target' => '_blank'
+        ]
+    ]);
+}, 999);
 
 
 add_filter('show_admin_bar', '__return_true');
@@ -24,8 +39,3 @@ add_action('admin_bar_menu', function($admin_bar) {
     }
 }, 100);
 
-add_action('admin_bar_menu', function($wp_admin_bar) {
-    if (!current_user_can('administrator')) {
-        $wp_admin_bar->remove_node('view-site'); // Removes "Visit Site" link
-    }
-}, 999);
