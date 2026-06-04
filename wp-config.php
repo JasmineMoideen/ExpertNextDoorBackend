@@ -20,13 +20,13 @@
 
 // ** Database settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'servicelistingreact' );
+define( 'DB_NAME', 'servicelisting-react' );
 
 /** Database username */
-define( 'DB_USER', 'wp_tech' );
+define( 'DB_USER', 'root' );
 
 /** Database password */
-define( 'DB_PASSWORD', '$[2Ft6@FxdGEa*91' );
+define( 'DB_PASSWORD', '' );
 
 /** Database hostname */
 define( 'DB_HOST', 'localhost' );
